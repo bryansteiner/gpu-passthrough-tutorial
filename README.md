@@ -1,6 +1,6 @@
 ## GPU Passthrough Tutorial
 
-In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. We will be using a Linux host installed with Pop!\_OS 19.10 and a Windows 10 guest VM.
+In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. We will be using a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a Windows 10 guest VM.
 
 ### Considerations
 
