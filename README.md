@@ -1,10 +1,14 @@
-## Running Windows 10 on Linux using KVM with GPU Passthrough
+## GPU Passthrough Tutorial
 
-In this post, I will be giving detailed instructions on how to create a successful KVM setup with GPU-passthrough (also referred to as "VGA passthrough" or "vfio" for the drivers  a Linux host (Pop!\_OS 19.10) and a Windows 10 guest VM.
+In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough (also referred to as "VGA passthrough" or "vfio" for the drivers). We will be using a Linux host (Pop!\_OS 19.10) and a Windows 10 guest VM.
 
 ### Considerations
 
-The main reason I wanted to get this setup working was because I found myself tired of using a dual-boot setup. I wanted to be able to launch a Windows VM specifically for intensive gaming while still being able to use my Linux host for development work. Many of the GPU-passthrough tutorials actually discuss completely different setups. We need to distinguish between the two types:
+The main reason I wanted to get this setup working was because I found myself tired of using a dual-boot setup. I wanted to launch a Windows VM specifically for gaming while still be able to use my Linux host for development work. 
+
+At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to POSIX-compliant system calls. A GPU-passthrough setup however uses [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch VMs. Performance wise, there are pros and cons to each approach. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News.
+
+Many of the GPU-passthrough tutorials actually discuss completely different setups. We need to distinguish between the two types:
 
 - Single GPU-Passthrough
     - This setup invovles *only* a single GPU that is passed from the host OS to the guest VM.
