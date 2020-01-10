@@ -39,6 +39,5 @@ For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specific
     - An excellent resource. Written for setups with 2 GPUs: 1 iGPU + 1 dGPU or 2 dGPUs. 
     - Unlike the tutorial here, Heiko's binds the dGPU at boot time rather than dynamically before VM starts. This is fine for most setups, but not for those who want to use their dGPU on a host whenever the VM shutdown. *See binding/unbinding vfio section.*
     - The same goes for hugepages. Heiko's tutorial allocates hugepages statically whereas this tutorial does it dynamically. Again fine for most setups, but those who want to free up RAM space whenever their VM is shutdown benefit more from dynamic allocation. *See hugepage section.*
-- [The Passthrough Post](https://passthroughpo.st/)
-    - A blog dedicated to the latest PCI passthrough/VFIO related news, guides, benchmarks and tools, all in one place
+- [The Passthrough Post](https://passthroughpo.st/) - A blog dedicated to the latest PCI passthrough/VFIO related news, guides, benchmarks and tools
     - [VFIO PC Builds](https://passthroughpo.st/vfio-increments/) - a list of parts for VFIO-focused PC builds at different price ranges
