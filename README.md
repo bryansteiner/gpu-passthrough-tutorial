@@ -48,4 +48,4 @@ For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specific
     - [VFIO PC Builds](https://passthroughpo.st/vfio-increments/) - a list of parts for VFIO-focused PC builds at different price ranges
 
 ### Footnotes
-<a name="footnote1">1</a>: Footnote content goes here: I will use the term iGPU to refer to Intel's line of integrated GPUs that usually come built into their processors. I will use the term dGPU to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
+<a name="footnote1">1</a>: I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
