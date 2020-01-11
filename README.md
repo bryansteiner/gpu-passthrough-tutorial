@@ -8,21 +8,7 @@ The main reason I wanted to get this setup working was because I found myself ti
 
 At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch individual VMs with specific hardware attached to them. Performance wise, there are pros and cons to each approach.<sup>[1](#footnote1)</sup>
 
-Many of the GPU-passthrough tutorials that I encountered discuss widely different setups and each one has its own unique quirks. Here I'll try to help you distinguish between some general types:<sup>[2](#footnote2)</sup><br/>
- 
-1. Number of GPUs:
-    ⋅ 1 GPU:
-        ⋅ This setup invovles *only* a single GPU that is passed from the host OS to the guest VM.
-        ⋅ The host has to suspend it's display whenever the VM is active. The VM and host cannot be used simulatneously.
-    ⋅ 2 GPUs:
-        ⋅ 1 iGPU + 1 dGPU: a non-primary GPU (dGPU) is passed from the host to the guest VM, while the primary GPU (iGPU) is used to manage the host's display session. 
-        ⋅ 2 dGPUs: a non-primary GPU (dGPU) and a primary GPU (dGPU)
-    ⋅ 2+ GPUs: Several non-primary GPUs (dGPUs) can be passed from the host to multiple guest VMs, while the primary GPU (iGPU/dGPU) is used to manage the host's display session.
-2. CPU Type:
-    ⋅ AMD
-    ⋅ Intel
-
-For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specifically, I will be passing through an NVIDIA GPU to my guest VM while using an AMD GPU for my host.
+For this tutorial, I will be using the traditional GPU-passthrough setup. Specifically, I will be passing through an Nvidia GPU to my guest VM while using an AMD GPU for my host. You could easily substitute an iGPU for the host but I chose to upgrade to a dGPU for performance reasons.<sup>[2](#footnote2)</sup>
 
 ### Hardware Requirements
 
@@ -34,7 +20,6 @@ For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specific
 - GPUs:
     - NVIDIA RTX 2080 Ti
     - AMD RX590
-    - Intel UHD 630 (iGPU)
 - Memory:
     - Corsair Vengeance LPX DDR4 3200 MHz 32GB (2x16)
 - Disk:
