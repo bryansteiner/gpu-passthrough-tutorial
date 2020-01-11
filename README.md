@@ -8,7 +8,7 @@ The main reason I wanted to get this setup working was because I found myself ti
 
 At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch individual VMs with specific hardware attached to them. Performance wise, there are pros and cons to each approach.<sup>[1](#footnote1)</sup>
 
-Many of the GPU-passthrough tutorials that I encountered discuss widely different setups and each one has its own unique quirks. Here I'll try to help you distinguish between some general types:<sup>[2](#footnote2)</sup>
+Many of the GPU-passthrough tutorials that I encountered discuss widely different setups and each one has its own unique quirks. Here I'll try to help you distinguish between some general types:<sup>[2](#footnote2)</sup><br/>
  
 ⋅ Number of GPUs:
     - 1 GPU:
