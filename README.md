@@ -4,12 +4,13 @@ In this post, I will be giving detailed instructions on how to run a KVM setup w
 
 ## Considerations
 
-The main reason I wanted to get this setup working was because I found myself tired of using a dual-boot setup. I wanted to launch a Windows VM specifically for gaming while still be able to use my Linux host for development work. 
+The main reason I wanted to get this setup working was because I found myself tired of using a dual-boot setup. I wanted to launch a Windows VM specifically for gaming while still be able to use my Linux host for development work.
 
-At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to POSIX-compliant system calls. A GPU-passthrough setup however uses [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch VMs. Performance wise, there are pros and cons to each approach. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News.
+At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch VMs with hardware attached to them. Performance wise, there are pros and cons to each approach. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News for more information.
 
-Many of the GPU-passthrough tutorials actually discuss completely different setups. We need to distinguish between the two types:
-
+Many of the GPU-passthrough tutorials that I encountered discuss completely different setups. By *different* I mean that they either used AMD/Intel CPUs and one or more GPUs[^1]
+ 
+    
 - Single GPU-Passthrough
     - This setup invovles *only* a single GPU that is passed from the host OS to the guest VM.
     - Most of the time, these type of setups occur when you have only a dGPU with no iGPU.
@@ -45,3 +46,6 @@ For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specific
     - The same goes for hugepages. Heiko's tutorial allocates hugepages at boot-time whereas this tutorial does it dynamically. Again this is fine for most setups, but those who want to free up RAM space whenever their VM is shutdown benefit more from dynamic allocation. *TODO: link to hugepage section.*
 - [The Passthrough Post](https://passthroughpo.st/) - A blog dedicated to the latest PCI passthrough/VFIO related news, guides, benchmarks and tools
     - [VFIO PC Builds](https://passthroughpo.st/vfio-increments/) - a list of parts for VFIO-focused PC builds at different price ranges
+
+### Footnotes
+[^1]: I will use the term iGPU to refer to Intel's line of integrated GPUs that usually come built into their processors. I will use the term dGPU to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
