@@ -10,17 +10,17 @@ At this point, you might be wondering... Why not just game on Linux? This is def
 
 Many of the GPU-passthrough tutorials that I encountered discuss widely different setups and each one has its own unique quirks. Here I'll try to help you distinguish between some general types:<sup>[2](#footnote2)</sup><br/>
  
-⋅ Number of GPUs:
-⋅⋅- 1 GPU:
-⋅⋅⋅- This setup invovles *only* a single GPU that is passed from the host OS to the guest VM.
-⋅⋅⋅- The host has to suspend it's display whenever the VM is active. The VM and host cannot be used simulatneously.
-⋅⋅- 2 GPUs:
-⋅⋅⋅- 1 iGPU + 1 dGPU: a non-primary GPU (dGPU) is passed from the host to the guest VM, while the primary GPU (iGPU) is used to manage the host's display session. 
-⋅⋅⋅- 2 dGPUs: a non-primary GPU (dGPU) and a primary GPU (dGPU)
-⋅⋅- 2 or more GPUs: several non-primary GPUs (dGPUs) can be passed from the host to multiple guest VMs, while the primary GPU (iGPU/dGPU) is used to manage the host's display session.
-⋅ CPU Type:
-     - AMD
-     - Intel
+1. Number of GPUs:
+    ⋅ 1 GPU:
+        ⋅ This setup invovles *only* a single GPU that is passed from the host OS to the guest VM.
+        ⋅ The host has to suspend it's display whenever the VM is active. The VM and host cannot be used simulatneously.
+    ⋅ 2 GPUs:
+        ⋅ 1 iGPU + 1 dGPU: a non-primary GPU (dGPU) is passed from the host to the guest VM, while the primary GPU (iGPU) is used to manage the host's display session. 
+        ⋅ 2 dGPUs: a non-primary GPU (dGPU) and a primary GPU (dGPU)
+    ⋅ 2+ GPUs: Several non-primary GPUs (dGPUs) can be passed from the host to multiple guest VMs, while the primary GPU (iGPU/dGPU) is used to manage the host's display session.
+2. CPU Type:
+    ⋅ AMD
+    ⋅ Intel
 
 For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specifically, I will be passing through an NVIDIA GPU to my guest VM while using an AMD GPU for my host.
 
