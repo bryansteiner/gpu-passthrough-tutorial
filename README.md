@@ -1,23 +1,28 @@
 # GPU Passthrough Tutorial
 
-In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. We will be using a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a guest VM running Windows 10.
+In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a guest VM running Windows 10.
 
 ### Considerations
 
 The main reason I wanted to get this setup working was because I found myself tired of using a dual-boot setup. I wanted to launch a Windows VM specifically for gaming while still be able to use my Linux host for development work.
 
-At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch VMs with hardware attached to them. Performance wise, there are pros and cons to each approach.<sup>[1](#footnote1)</sup>
+At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch individual VMs with specific hardware attached to them. Performance wise, there are pros and cons to each approach.<sup>[1](#footnote1)</sup>
 
-Many of the GPU-passthrough tutorials that I encountered discuss completely different setups. By *different* I mean that they either used AMD/Intel CPUs and one or more GPUs<sup>[2](#footnote2)</sup>
+Many of the GPU-passthrough tutorials that I encountered discuss widely different setups and each one has its own unique quirks. Here I'll try to help you distinguish between some general types:<sup>[2](#footnote2)</sup>
  
-    
-- Single GPU-Passthrough
-    - This setup invovles *only* a single GPU that is passed from the host OS to the guest VM.
-    - Most of the time, these type of setups occur when you have only a dGPU with no iGPU.
-    - The host has to suspend it's display whenever the VM is active.
-- Multiple GPU-Passthrough
-    - This setup involves multiple GPUs, where a non-primary GPU is passed from the host to the guest VM while the primary GPU (usually an iGPU or 2nd GPU) is used for the host display
-    - This setup requires at minimum 2 GPUs: one for the host and one for the VM.
+⋅ Number of GPUs:
+    - 1 GPU:
+       - This setup invovles *only* a single GPU that is passed from the host OS to the guest VM.
+       - The host has to suspend it's display whenever the VM is active. The VM and host cannot be used simulatneously.
+    - 2 GPUs:
+       - 1 iGPU + 1 dGPU
+          - A non-primary GPU (dGPU) is passed from the host to the guest VM while the primary GPU (iGPU) is used for the host display
+          - In this scenario, the VM and host can be used simulatenously (when CPUs are granted to both)
+    - 2 or more GPUs
+       - This setup requires at minimum 2 GPUs: one for the host and one for the VM.
+⋅ CPU Type:
+     - AMD
+     - Intel
 
 For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specifically, I will be passing through an NVIDIA GPU to my guest VM while using an AMD GPU for my host.
 
