@@ -8,7 +8,7 @@ The main reason I wanted to get this setup working was because I found myself ti
 
 At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch VMs with hardware attached to them. Performance wise, there are pros and cons to each approach. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News for more information.
 
-Many of the GPU-passthrough tutorials that I encountered discuss completely different setups. By *different* I mean that they either used AMD/Intel CPUs and one or more GPUs[^1]
+Many of the GPU-passthrough tutorials that I encountered discuss completely different setups. By *different* I mean that they either used AMD/Intel CPUs and one or more GPUs<sup>[1](#footnote1)</sup>
  
     
 - Single GPU-Passthrough
@@ -48,4 +48,4 @@ For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specific
     - [VFIO PC Builds](https://passthroughpo.st/vfio-increments/) - a list of parts for VFIO-focused PC builds at different price ranges
 
 ### Footnotes
-[^1]: I will use the term iGPU to refer to Intel's line of integrated GPUs that usually come built into their processors. I will use the term dGPU to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
+<a name="footnote1">1</a>: Footnote content goes here: I will use the term iGPU to refer to Intel's line of integrated GPUs that usually come built into their processors. I will use the term dGPU to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
