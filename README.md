@@ -2,7 +2,7 @@
 
 In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. We will be using a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a guest VM running Windows 10.
 
-## Considerations
+### Considerations
 
 The main reason I wanted to get this setup working was because I found myself tired of using a dual-boot setup. I wanted to launch a Windows VM specifically for gaming while still be able to use my Linux host for development work.
 
@@ -21,9 +21,9 @@ Many of the GPU-passthrough tutorials that I encountered discuss completely diff
 
 For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specifically, I will be passing through an NVIDIA GPU to my guest VM while using an AMD GPU for my host.
 
-## Hardware Requirements
+### Hardware Requirements
 
-## My Hardware Setup
+### My Hardware Setup
 - CPU:
     - Intel i7-8700k
 - Motherboard:
@@ -38,7 +38,7 @@ For this tutorial, I will be sticking to a multi GPU-Passthrough setup. Specific
     - Samsung 970 EVO Plus SSD 500GB - M.2 NVME (host)
     - Samsung 970 EVO Plus SSD 1TB - M.2 NVME (guest)
 
-## Credits + Useful Resources
+### Credits + Useful Resources
 
 - [Heiko Sieger - Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
     - An excellent resource. Written for setups with 2 GPUs: 1 iGPU + 1 dGPU or 2 dGPUs. 
