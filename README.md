@@ -12,6 +12,10 @@ For this tutorial, I will be using the traditional GPU-passthrough setup. Specif
 
 ### Hardware Requirements
 
+You're going to need the following to achieve a high-performance gaming VM:
+    - Two graphics cards: either an iGPU + dGPU or 2 dGPUs. 
+    - A monitor with two inputs.<sup>[3](#footnote3)</sup> 
+
 ### My Hardware Setup
 - CPU:
     - Intel i7-8700k
@@ -42,3 +46,4 @@ For this tutorial, I will be using the traditional GPU-passthrough setup. Specif
 ### Footnotes
 <a name="footnote1">1</a>. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News for more information. <br/>
 <a name="footnote2">2</a>. I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
+<a name="footnote3">3</a>. Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
