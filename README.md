@@ -28,6 +28,10 @@ For this tutorial, I will be using the traditional GPU-passthrough setup. Specif
 
 ### Credits + Useful Resources
 
+- [ArchWiki](https://wiki.archlinux.org/)
+    - [QEMU](https://wiki.archlinux.org/index.php/QEMU)
+    - [Libvirt](https://wiki.archlinux.org/index.php/Libvirt)
+    - [PCI Passthrough](https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF)
 - [Heiko Sieger - Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
     - An excellent resource. Written for setups with 2 GPUs: 1 iGPU + 1 dGPU or 2 dGPUs. 
     - Unlike the tutorial here, Heiko's binds the dGPU at boot time rather than dynamically before VM starts. This is fine for most setups, but not for those who want to use their dGPU on a host whenever the VM shutdown. *TODO: link to bind/unbind vfio section.*
