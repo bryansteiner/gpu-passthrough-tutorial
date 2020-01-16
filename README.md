@@ -85,5 +85,5 @@ When first planning my GPU-passthrough setup, I discovered that many tutorials o
 <br/>
 <a name="footnote3">3</a>. Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
 <br/>
-<a name="footnote4">4</a>. By default, I wanted my Linux host to be able to perform CUDA work on the attached NVIDIA gpu. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use it for ML/AI applications.
+<a name="footnote4">4</a>. By default, I wanted my Linux host to be able to perform [CUDA](https://developer.nvidia.com/cuda-downloads) work on the attached NVIDIA gpu. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use [cuDNN](https://developer.nvidia.com/cudnn) for ML/AI applications.
 
