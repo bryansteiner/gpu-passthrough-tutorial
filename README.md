@@ -13,8 +13,12 @@ For this tutorial, I will be using the traditional GPU-passthrough setup. Specif
 ### Hardware Requirements
 
 You're going to need the following to achieve a high-performance gaming VM:
-- Two graphics cards: either an iGPU + dGPU or 2 dGPUs. 
-- A monitor with two inputs.<sup>[3](#footnote3)</sup> 
+- Two graphics cards.
+- A CPU that supports virtualization IOMMU.
+- A motherboard that supports IOMMU.
+- A monitor with two inputs.<sup>[3](#footnote3)</sup>
+
+[List of IOMMU-supporting hardware](https://en.wikipedia.org/wiki/List_of_IOMMU-supporting_hardware)
 
 ### My Hardware Setup
 - CPU:
@@ -29,6 +33,10 @@ You're going to need the following to achieve a high-performance gaming VM:
 - Disk:
     - Samsung 970 EVO Plus SSD 500GB - M.2 NVME (host)
     - Samsung 970 EVO Plus SSD 1TB - M.2 NVME (guest)
+    
+### Part 1: Setup
+
+1. Boot into BIOS and enable IOMMU. For Intel processors, look for something called VT-d. For AMD, look for AMD-Virtualization or AMD-Vi.  
 
 ### Credits + Useful Resources
 
