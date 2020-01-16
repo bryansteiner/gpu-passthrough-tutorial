@@ -30,7 +30,7 @@ You're going to need the following to achieve a high-performance VM:
 - Disk:
     - Samsung 970 EVO Plus SSD 500GB - M.2 NVME (host)
     - Samsung 970 EVO Plus SSD 1TB - M.2 NVME (guest)
-    
+
 ### Part 1: Prerequisites
 
 Boot into BIOS and enable IOMMU. For Intel processors, look for something called VT-d. For AMD, look for something called AMD-Vi. Save the changes and restart the machine. Once you've booted into the host, make sure that IOMMU is enabled.
@@ -53,22 +53,19 @@ AMD-Vi: Initialized for Passthrough Mode
 ...
 ```
 
-Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd, I'll be editing `/boot/efi/loader/loader.conf` and adding the following:
+Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd and these configuration files are often overwritten on updates, I will be using a tool called [kernelstub](https://github.com/pop-os/kernelstub).
 
-For Intel: 
-```
-options root= quiet splash intel_iommu=on
-```
-For AMD: 
-```
-options root= quiet splash amd_iommu=on
-```
+For Intel: `sudo kernelstub -o "intel_iommu=on"`<br/>
+For AMD: `sudo kernelstub -o "amd_iommu=on"`
 
-When first planning my GPU-passthrough setup, I discovered that many tutorials out there will go ahead and have you blacklist the nvidia or amd drivers at this point. The logic stems from the idea that since the native drivers can't attach to the gpu at boot-time, the gpu will be freed-up and ready to bind to the vfio drivers instead. The method of achieving this is called `pci-stub`. I found that this solution wasn't good enough for me!<sup>[4](#footnote4)</sup> I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before starting my VM (see below). That way, whenever the gaming VM isn't in use, the gpu is available to the host machine.
+Likewise, for those of you using grub, you can modify /etc/default/grub as follows:
+
+For Intel: `GRUB_CMDLINE_LINUX_DEFAULT=”quiet intel_iommu=on”`<br/>
+For AMD: `GRUB_CMDLINE_LINUX_DEFAULT=”quiet amd_iommu=on”`
+
+When first planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the NVIDIA or AMD drivers. The logic stems from the idea that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add another kernel parameter called `pci-stub`. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and reversing these actions when the VM stops (see Part 3). That way, whenever the VM isn't in use, the GPU is available to the host machine.<sup>[4](#footnote4)</sup>
 
 ### Part 2: Setting up the VM
-
-
 
 ### Part 3: VM Orchestration
 
@@ -81,7 +78,7 @@ When first planning my GPU-passthrough setup, I discovered that many tutorials o
     - [Libvirt](https://wiki.archlinux.org/index.php/Libvirt)
     - [PCI Passthrough](https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF)
 - [Heiko Sieger - Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
-    - An excellent resource. Written for setups with 2 GPUs: 1 iGPU + 1 dGPU or 2 dGPUs. 
+    - An excellent resource. Written for setups with 2 GPUs: 1 iGPU + 1 dGPU or 2 dGPUs.
     - Unlike the tutorial here, Heiko's binds the dGPU at boot time rather than dynamically before VM starts. This is fine for most setups, but not for those who want to use their dGPU on a host whenever the VM shutdown. *TODO: link to bind/unbind vfio section.*
     - The same goes for hugepages. Heiko's tutorial allocates hugepages at boot-time whereas this tutorial does it dynamically. Again this is fine for most setups, but those who want to free up RAM space whenever their VM is shutdown benefit more from dynamic allocation. *TODO: link to hugepage section.*
 - [The Passthrough Post](https://passthroughpo.st/) - A blog dedicated to the latest PCI passthrough/VFIO related news, guides, benchmarks and tools
@@ -93,5 +90,4 @@ When first planning my GPU-passthrough setup, I discovered that many tutorials o
 <br/>
 <a name="footnote3">3</a>. Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
 <br/>
-<a name="footnote4">4</a>. By default, I wanted my Linux host to be able to perform [CUDA](https://developer.nvidia.com/cuda-downloads) work on the attached NVIDIA gpu. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use [cuDNN](https://developer.nvidia.com/cudnn) for ML/AI applications.
-
+<a name="footnote4">4</a>. I specifically wanted my Linux host to be able to perform [CUDA](https://developer.nvidia.com/cuda-downloads) work on the attached NVIDIA gpu. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use it [cuDNN](https://developer.nvidia.com/cudnn) for ML/AI applications.
