@@ -82,6 +82,8 @@ When first planning my GPU-passthrough setup, I discovered that many tutorials o
 ### Footnotes
 <a name="footnote1">1</a>. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News for more information. <br/>
 <a name="footnote2">2</a>. I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
+<br/>
 <a name="footnote3">3</a>. Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
+<br/>
 <a name="footnote4">4</a>. By default, I wanted my Linux host to be able to perform CUDA work on the attached NVIDIA gpu. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use it for ML/AI applications.
 
