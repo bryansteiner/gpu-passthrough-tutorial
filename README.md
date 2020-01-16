@@ -15,7 +15,6 @@ For this tutorial, I will be using a GPU-passthrough setup. Specifically, I will
 You're going to need the following to achieve a high-performance VM:
 - Two graphics cards.
 - [Hardware the supports IOMMU](https://en.wikipedia.org/wiki/List_of_IOMMU-supporting_hardware).
-- A motherboard that supports IOMMU.
 - A monitor with two inputs.<sup>[3](#footnote3)</sup>
 
 ### My Hardware Setup
