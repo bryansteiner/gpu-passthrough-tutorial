@@ -8,7 +8,7 @@ The main reason I wanted to get this setup working was because I found myself ti
 
 At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch individual VMs with specific hardware attached to them. Performance wise, there are pros and cons to each approach.<sup>[1](#footnote1)</sup>
 
-For this tutorial, I will be using the traditional GPU-passthrough setup. Specifically, I will be passing through an Nvidia GPU to my guest VM while using an AMD GPU for my host. You could easily substitute an iGPU for the host but I chose to upgrade to a dGPU for performance reasons.<sup>[2](#footnote2)</sup>
+For this tutorial, I will be using a GPU-passthrough setup. Specifically, I will be passing through an Nvidia GPU to my guest VM while using an AMD GPU for my host. You could easily substitute an iGPU for the host but I chose to upgrade to a dGPU for performance reasons.<sup>[2](#footnote2)</sup>
 
 ### Hardware Requirements
 
@@ -54,7 +54,18 @@ AMD-Vi: Initialized for Passthrough Mode
 ...
 ```
 
-Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd, I'll be editing `/boot/loader/entries/xxxx.conf`. 
+Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd, I'll be editing `/boot/efi/loader/loader.conf` and adding the following:
+
+For Intel:
+```
+options root= quiet splash intel_iommu=on
+```
+For AMD:
+```
+
+```
+
+### Part 4: Performance
 
 ### Credits + Useful Resources
 
