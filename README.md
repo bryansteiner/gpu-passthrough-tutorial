@@ -28,7 +28,7 @@ For this tutorial, I will be using the traditional GPU-passthrough setup. Specif
 
 ### Credits + Useful Resources
 
-- [ArchWiki](https://wiki.archlinux.org/)
+- ArchWiki
     - [QEMU](https://wiki.archlinux.org/index.php/QEMU)
     - [Libvirt](https://wiki.archlinux.org/index.php/Libvirt)
     - [PCI Passthrough](https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF)
