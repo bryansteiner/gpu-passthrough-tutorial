@@ -56,14 +56,14 @@ AMD-Vi: Initialized for Passthrough Mode
 
 Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd, I'll be editing `/boot/efi/loader/loader.conf` and adding the following:
 
-For Intel:
-```
-options root= quiet splash intel_iommu=on
-```
-For AMD:
-```
+For Intel: `options root= quiet splash intel_iommu=on`
+For AMD: `options root= quiet splash intel_iommu=on`
 
-```
+When first planning my GPU-passthrough setup, I discovered that many tutorials out there will go ahead and have you blacklist the nvidia or amd drivers at this point. The logic stems from the idea that since the native drivers can't attach to the gpu at boot, it will instead be freed up and ready to bind instead to the vfio drivers. The method of doing this is called `pci-stub`. I found that this solution wasn't good enough for me!<sup>[4](#footnote4)</sup> I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before starting my VM (see below). That way, whenever the gaming VM isn't in use, the card belongs to the host machine.
+
+### Part 2: Setting up the VM
+
+### Part 3: VM Orchestration
 
 ### Part 4: Performance
 
@@ -84,3 +84,5 @@ For AMD:
 <a name="footnote1">1</a>. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News for more information. <br/>
 <a name="footnote2">2</a>. I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
 <a name="footnote3">3</a>. Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
+<a name="footnote4">4</a>. By default, I wanted my Linux host to be able to perform CUDA work on the attached NVIDIA gpu. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use it for ML/AI applications.
+
