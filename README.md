@@ -32,9 +32,29 @@ You're going to need the following to achieve a high-performance VM:
     - Samsung 970 EVO Plus SSD 500GB - M.2 NVME (host)
     - Samsung 970 EVO Plus SSD 1TB - M.2 NVME (guest)
     
-### Part 1: Setup
+### Part 1: Prerequisites
 
-1. Boot into BIOS and enable IOMMU. For Intel processors, look for something called VT-d. For AMD, look for AMD-Virtualization or AMD-Vi.  
+Boot into BIOS and enable IOMMU. For Intel processors, look for something called VT-d. For AMD, look for something called AMD-Vi. Save the changes and restart the machine. Once you've booted into the host, make sure that IOMMU is enabled.
+
+For Intel:
+```
+$ dmesg | grep -e DMAR -e IOMMU
+...
+DMAR:DRHD base: 0x000000feb03000 flags: 0x0
+IOMMU feb03000: ver 1:0 cap c9008020e30260 ecap 1000
+...
+```
+For AMD:
+```
+$ dmesg | grep AMD-Vi
+...
+AMD-Vi: Enabling IOMMU at 0000:00:00.2 cap 0x40
+AMD-Vi: Lazy IO/TLB flushing enabled
+AMD-Vi: Initialized for Passthrough Mode
+...
+```
+
+Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd, I'll be editing `/boot/loader/entries/xxxx.conf`. 
 
 ### Credits + Useful Resources
 
