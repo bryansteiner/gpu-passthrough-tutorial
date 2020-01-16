@@ -13,8 +13,8 @@ For this tutorial, I will be using the traditional GPU-passthrough setup. Specif
 ### Hardware Requirements
 
 You're going to need the following to achieve a high-performance gaming VM:
-    - Two graphics cards: either an iGPU + dGPU or 2 dGPUs. 
-    - A monitor with two inputs.<sup>[3](#footnote3)</sup> 
+- Two graphics cards: either an iGPU + dGPU or 2 dGPUs. 
+- A monitor with two inputs.<sup>[3](#footnote3)</sup> 
 
 ### My Hardware Setup
 - CPU:
