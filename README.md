@@ -58,7 +58,7 @@ Now you're going to need to pass the hardware-enabled IOMMU functionality into t
 For Intel: `sudo kernelstub -o "intel_iommu=on"`<br/>
 For AMD: `sudo kernelstub -o "amd_iommu=on"`
 
-Likewise, for those of you using grub, you can modify /etc/default/grub as follows:
+Likewise, if you're using grub, modify /etc/default/grub as follows:
 
 For Intel: `GRUB_CMDLINE_LINUX_DEFAULT=”quiet intel_iommu=on”`<br/>
 For AMD: `GRUB_CMDLINE_LINUX_DEFAULT=”quiet amd_iommu=on”`
@@ -66,6 +66,48 @@ For AMD: `GRUB_CMDLINE_LINUX_DEFAULT=”quiet amd_iommu=on”`
 When first planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the NVIDIA or AMD drivers. The logic stems from the idea that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add another kernel parameter called `pci-stub`. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and reversing these actions when the VM stops (see Part 3). That way, whenever the VM isn't in use, the GPU is available to the host machine.<sup>[4](#footnote4)</sup>
 
 ### Part 2: Setting up the VM
+
+Now it's time to install some necessary packages:
+
+`sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-manager ovmf hugepages`
+
+Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. We'll want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following bash script:
+
+```
+#!/bin/bash
+for d in /sys/kernel/iommu_groups/*/devices/*; do
+  n=${d#*/iommu_groups/*}; n=${n%%/*}
+  printf 'IOMMU Group %s ' "$n"
+  lspci -nns "${d##*/}"
+done
+```
+
+My system produced the following (relevant) output:
+```
+...
+IOMMU Group 1 00:01.0 PCI bridge [0604]: Intel Corporation Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x16) [8086:1901] (rev 07)
+IOMMU Group 1 00:01.1 PCI bridge [0604]: Intel Corporation Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x8) [8086:1905] (rev 07)
+IOMMU Group 1 01:00.0 VGA compatible controller [0300]: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti Rev. A] [10de:1e07] (rev a1)
+IOMMU Group 1 01:00.1 Audio device [0403]: NVIDIA Corporation TU102 High Definition Audio Controller [10de:10f7] (rev a1)
+IOMMU Group 1 01:00.2 USB controller [0c03]: NVIDIA Corporation TU102 USB 3.1 Controller [10de:1ad6] (rev a1)
+IOMMU Group 1 01:00.3 Serial bus controller [0c80]: NVIDIA Corporation TU102 UCSI Controller [10de:1ad7] (rev a1)
+IOMMU Group 1 02:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere [Radeon RX 470/480/570/570X/580/580X/590] [1002:67df] (rev e1)
+IOMMU Group 1 02:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere HDMI Audio [Radeon RX 470/480 / 570/580/590] [1002:aaf0]
+IOMMU Group 2 00:02.0 Display controller [0380]: Intel Corporation UHD Graphics 630 (Desktop) [8086:3e92]
+...
+
+```
+
+Here we see that both my NVIDIA and AMD GPUs reside in IOMMU group 1. This presents a problem. If I want to use my AMD GPU for my host machine while passing through the NVIDIA GPU to the guest VM, I'll need to figure out a way to separate their IOMMU groups.
+
+1. One possible solution is to switch the PCI slot to which my AMD graphics card is attached. This may or may not produce the desired solution (in my case I didn't have another slot).
+2. An alternative solution is something called the [ACS Override Patch](https://queuecumber.gitlab.io/linux-acs-override/). For an in-depth discussion, it's definitely worth checking out this post from [Alex Williamson](https://vfio.blogspot.com/2014/08/iommu-groups-inside-and-out.html). Make sure to consider the risks.<sup>[5](#footnote5)</sup>
+
+For my setup I chose to apply the ACS Override Patch... For most linux distributions, this means you have to download the kernel source code, manually insert the ACS patch, compile + install the kernel, and then boot from the newly patched kernel.<sup>[6](#footnote6)</sup> Since I'm running a Debian-based distribution, I used one of the [pre-compiled kernels](https://queuecumber.gitlab.io/linux-acs-override/) with the ACS patch applied.
+
+
+
+
 
 ### Part 3: VM Orchestration
 
@@ -75,14 +117,23 @@ When first planning my GPU-passthrough setup, I discovered that many tutorials a
 
 - ArchWiki
     - [QEMU](https://wiki.archlinux.org/index.php/QEMU)
+    - [KVM](https://wiki.archlinux.org/index.php/KVM)
     - [Libvirt](https://wiki.archlinux.org/index.php/Libvirt)
     - [PCI Passthrough](https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF)
-- [Heiko Sieger - Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
-    - An excellent resource. Written for setups with 2 GPUs: 1 iGPU + 1 dGPU or 2 dGPUs.
-    - Unlike the tutorial here, Heiko's binds the dGPU at boot time rather than dynamically before VM starts. This is fine for most setups, but not for those who want to use their dGPU on a host whenever the VM shutdown. *TODO: link to bind/unbind vfio section.*
-    - The same goes for hugepages. Heiko's tutorial allocates hugepages at boot-time whereas this tutorial does it dynamically. Again this is fine for most setups, but those who want to free up RAM space whenever their VM is shutdown benefit more from dynamic allocation. *TODO: link to hugepage section.*
+- Tutorials
+    - [Heiko Sieger - Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
+        - An excellent resource. Written for setups with 2 GPUs: 1 iGPU + 1 dGPU or 2 dGPUs.
+        - Unlike the tutorial here, Heiko's binds the dGPU at boot time rather than dynamically before VM starts. This is fine for most setups, but not for those who want to use their dGPU on a host whenever the VM shutdown.
+        - The same goes for hugepages. Heiko's tutorial allocates hugepages at boot-time whereas this tutorial does it dynamically. Again this is fine for most setups, but those who want to free up RAM space whenever their VM is shutdown benefit more from dynamic allocation.
+    - [David Yates - GPU passthrough: gaming on Windows on Linux](https://davidyat.es/2016/09/08/gpu-passthrough/)
+        - Like Sieger's tutorial, this tutorial is written for setups with 2 GPUs. Graphics cards are bound to vfio at boot-time and hugepages are allocated at boot-time.
+    - [Wendell - VFIO in 2019 – Pop!_OS How-To](https://forum.level1techs.com/t/vfio-in-2019-pop-os-how-to-general-guide-though-draft/142287)
+        - FYI: Wendell is from [Level1Techs](https://level1techs.com/). He has contributed to the FOSS community with a cool application called [Looking Glass](https://looking-glass.hostfission.com/). I recommend you check out this [video](https://www.youtube.com/watch?v=okMGtwfiXMo) for more information. He's even collaborated with Linus from "Linus Tech Tips" and put out this great [video](https://www.youtube.com/watch?v=SsgI1mkx6iw).
+
 - [The Passthrough Post](https://passthroughpo.st/) - A blog dedicated to the latest PCI passthrough/VFIO related news, guides, benchmarks and tools
     - [VFIO PC Builds](https://passthroughpo.st/vfio-increments/) - a list of parts for VFIO-focused PC builds at different price ranges
+
+-
 
 ### Footnotes
 <a name="footnote1">1</a>. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News for more information. <br/>
@@ -91,3 +142,7 @@ When first planning my GPU-passthrough setup, I discovered that many tutorials a
 <a name="footnote3">3</a>. Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
 <br/>
 <a name="footnote4">4</a>. I specifically wanted my Linux host to be able to perform [CUDA](https://developer.nvidia.com/cuda-downloads) work on the attached NVIDIA gpu. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use it [cuDNN](https://developer.nvidia.com/cudnn) for ML/AI applications.
+<br/>
+<a name="footnote5">5</a>. **Applying the ACS Override Patch may compromise system security**. Check out this [reddit post](https://www.reddit.com/r/VFIO/comments/bvif8d/official_reason_why_acs_override_patch_is_not_in/) to see why the ACS patch will probably never make its way upstream to the mainline kernel.
+<br/>
+<a name="footnote6">6</a>. Credit to the solution presented in [this post](https://forum.level1techs.com/t/how-to-apply-acs-override-patch-kubuntu-18-10-kernel-4-18-16/134204).
