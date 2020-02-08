@@ -8,7 +8,7 @@ The main reason I wanted to get this setup working was because I found myself ti
 
 At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch individual VMs with specific hardware attached to them. Performance wise, there are pros and cons to each approach.<sup>[1](#footnote1)</sup>
 
-For this tutorial, I will be using a GPU-passthrough setup. Specifically, I will be passing through an Nvidia GPU to my guest VM while using an AMD GPU for my host. You could easily substitute an iGPU for the host but I chose to upgrade to a dGPU for performance reasons.<sup>[2](#footnote2)</sup>
+For this tutorial, I will be using a GPU-passthrough setup. Specifically, I will be passing through an Nvidia GPU to my guest VM while using an AMD GPU for my host. You could easily substitute an iGPU for the host but I chose to use a dGPU for performance reasons.<sup>[2](#footnote2)</sup>
 
 ### Hardware Requirements
 
@@ -19,12 +19,12 @@ You're going to need the following to achieve a high-performance VM:
 
 ### My Hardware Setup
 - CPU:
-    - Intel i7-8700k
+    - AMD Ryzen 9 3900X
 - Motherboard:
-    - ROG Strix Z370-E Motherboard
+    - Gigabyte X570 Aorus Pro Wifi
 - GPUs:
     - NVIDIA RTX 2080 Ti
-    - AMD RX590
+    - AMD RX 5700 XT
 - Memory:
     - Corsair Vengeance LPX DDR4 3200 MHz 32GB (2x16)
 - Disk:
@@ -77,7 +77,7 @@ for d in /sys/kernel/iommu_groups/*/devices/*; do
 done
 ```
 
-My system produced the following (relevant) output:
+For Intel systems, the the following is a sample output:
 ```
 ...
 IOMMU Group 1 00:01.0 PCI bridge [0604]: Intel Corporation Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x16) [8086:1901] (rev 07)
@@ -91,16 +91,25 @@ IOMMU Group 1 02:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI
 ...
 ```
 
-Here we see that both my NVIDIA and AMD GPUs reside in IOMMU group 1. This presents a problem. If I want to use my AMD GPU for my host machine while passing through the NVIDIA GPU to the guest VM, I'll need to figure out a way to separate their IOMMU groups.
+Here we see that both the NVIDIA and AMD GPUs reside in IOMMU group 1. This presents a problem. If you want to use the AMD GPU for the host machine while passing through the NVIDIA GPU to the guest VM, you need to figure out a way to separate their IOMMU groups.
 
-1. One possible solution is to switch the PCI slot to which my AMD graphics card is attached. This may or may not produce the desired solution (in my case I didn't have another slot).
+1. One possible solution is to switch the PCI slot to which the AMD graphics card is attached. This may or may not produce the desired solution.
 2. An alternative solution is something called the [ACS Override Patch](https://queuecumber.gitlab.io/linux-acs-override/). For an in-depth discussion, it's definitely worth checking out this post from [Alex Williamson](https://vfio.blogspot.com/2014/08/iommu-groups-inside-and-out.html). Make sure to consider the risks.<sup>[5](#footnote5)</sup>
 
-#### ACS Override Patch:
+For my system, I was lucky and found that the NVIDIA and AMD GPUs resided in different IOMMU groups:
+```
+...
 
-For my setup I chose to apply the ACS Override Patch... For most linux distributions, this means you have to download the kernel source code, manually insert the ACS patch, compile + install the kernel, and then boot from the newly patched kernel.<sup>[6](#footnote6)</sup>
+...
+```
 
-Since I'm running a Debian-based distribution, I used one of the [pre-compiled kernels](https://queuecumber.gitlab.io/linux-acs-override/) with the ACS patch applied. After extracting the package contents, install the kernel and headers:
+If your setup is like mine and you had isolated IOMMU groups, then you can skip the following section. Otherwise, please continue reading...
+
+#### ACS Override Patch [Optional]:
+
+For most linux distributions, the ACS Override Patch requires you to download the kernel source code, manually insert the ACS patch, compile + install the kernel, and then boot directly from the newly patched kernel.<sup>[6](#footnote6)</sup>
+
+Since I'm running a Debian-based distribution, I can use one of the [pre-compiled kernels](https://queuecumber.gitlab.io/linux-acs-override/) with the ACS patch already applied. After extracting the package contents, install the kernel and headers:
 
 ```
 $ sudo dpkg -i linux-headers-5.3.0-acso_5.3.0-acso-1_amd64.deb
@@ -134,7 +143,7 @@ kernelstub           : INFO     System information:
     ESP Partition #:.....1
     NVRAM entry #:.......-1
     Boot Variable #:.....0000
-    Kernel Boot Options:.quiet loglevel=0 systemd.show_status=false splash intel_iommu=on
+    Kernel Boot Options:.quiet loglevel=0 systemd.show_status=false splash amd_iommu=on
     Kernel Image Path:.../boot/vmlinuz
     Initrd Image Path:.../boot/initrd.img
     Force-overwrite:.....False
@@ -147,7 +156,7 @@ kernelstub           : INFO     Configuration details:
    Configuration version:.........3
 ```
 
-You can see that the "Kernel Image Path" and the "Initrd Image Path" are symbolic links that point to our old kernel and initrd.
+You can see that the "Kernel Image Path" and the "Initrd Image Path" are symbolic links that point to the old kernel and initrd.
 
 ```
 $ ls -l /boot
@@ -180,6 +189,7 @@ $ sudo ln -s /boot/initrd.img-5.3.0-acso /boot/initrd.img
 Verify that the symbolic links now point to the correct kernel and initrd images:
 
 ```
+$ ls -l /boot
 total 235488
 -rw-r--r-- 1 root root   235833 Dec 19 11:56 config-5.3.0-7625-generic
 -rw-r--r-- 1 root root   234967 Sep 16 04:31 config-5.3.0-acso
@@ -197,7 +207,7 @@ lrwxrwxrwx 1 root root       24 Jan 18 20:02 vmlinuz -> /boot/vmlinuz-5.3.0-acso
 lrwxrwxrwx 1 root root       26 Dec 20 11:28 vmlinuz.old -> vmlinuz-5.3.0-7625-generic
 ```
 
-Finally, we add the ACS Override Patch to our list of kernel parameter options:
+Finally, add the ACS Override Patch to your list of kernel parameter options:
 
 ```
 $ sudo kernelstub --add-options "pcie_acs_override=downstream"
