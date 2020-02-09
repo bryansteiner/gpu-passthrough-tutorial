@@ -30,7 +30,7 @@ You're going to need the following to achieve a high-performance VM:
     - Gigabyte X570 Aorus Pro Wifi
 - GPUs:
     - NVIDIA RTX 2080 Ti
-    - AMD RX 5700 XT
+    - AMD RX 5700
 - Memory:
     - Corsair Vengeance LPX DDR4 3200 MHz 32GB (2x16)
 - Disk:
