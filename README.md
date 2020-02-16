@@ -4,7 +4,7 @@ In this post, I will be giving detailed instructions on how to run a KVM setup w
 
 <div align="center">
     <a href="https://events.static.linuxfound.org/sites/events/files/slides/KVM,%20OpenStack,%20and%20the%20Open%20Cloud%20-%20ANJ%20MK%20%20-%2013Oct14.pdf">
-        <img src="https://docplayer.net/docs-images/41/3268432/images/page_6.jpg" alt="KVM Architecture" width="500">
+        <img src="./img/kvm-architecture.jpg" width="500">
     </a>
 </div>
 
@@ -34,8 +34,8 @@ You're going to need the following to achieve a high-performance VM:
 - Memory:
     - Corsair Vengeance LPX DDR4 3200 MHz 32GB (2x16)
 - Disk:
-    - Samsung 970 EVO Plus SSD 500GB - M.2 NVME (host)
-    - Samsung 970 EVO Plus SSD 1TB - M.2 NVME (guest)
+    - Samsung 970 EVO Plus SSD 500GB - M.2 NVMe (host)
+    - Samsung 970 EVO Plus SSD 1TB - M.2 NVMe (guest)
 
 ### Part 1: Prerequisites
 
@@ -64,15 +64,9 @@ Now you're going to need to pass the hardware-enabled IOMMU functionality into t
 For Intel: `$ sudo kernelstub --add-options "intel_iommu=on"`<br/>
 For AMD: `$ sudo kernelstub --add-options "amd_iommu=on"`
 
-When first planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the NVIDIA or AMD drivers. The logic stems from the idea that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add another kernel parameter called `pci-stub`. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and reversing these actions when the VM stops (see Part 3). That way, whenever the VM isn't in use, the GPU is available to the host machine.<sup>[4](#footnote4)</sup>
+When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the NVIDIA or AMD drivers. The logic stems from the idea that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add another kernel parameter called `pci-stub`. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and reversing these actions when the VM stops (see Part 3). That way, whenever the VM isn't in use, the GPU is available to the host machine.<sup>[4](#footnote4)</sup>
 
-### Part 2: Setting up the VM
-
-Now it's time to install some necessary packages:
-
-`$ sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-manager ovmf hugepages`
-
-Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. We'll want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following bash script:
+Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. We'll want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following script:
 
 ```
 #!/bin/bash
@@ -83,7 +77,7 @@ for d in /sys/kernel/iommu_groups/*/devices/*; do
 done
 ```
 
-For Intel systems, the the following is a sample output:
+For Intel systems, here's some sample output:
 ```
 ...
 IOMMU Group 1 00:01.0 PCI bridge [0604]: Intel Corporation Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x16) [8086:1901] (rev 07)
@@ -102,14 +96,16 @@ Here we see that both the NVIDIA and AMD GPUs reside in IOMMU group 1. This pres
 1. One possible solution is to switch the PCI slot to which the AMD graphics card is attached. This may or may not produce the desired solution.
 2. An alternative solution is something called the [ACS Override Patch](https://queuecumber.gitlab.io/linux-acs-override/). For an in-depth discussion, it's definitely worth checking out this post from [Alex Williamson](https://vfio.blogspot.com/2014/08/iommu-groups-inside-and-out.html). Make sure to consider the risks.<sup>[5](#footnote5)</sup>
 
-For my system, I was lucky and found that the NVIDIA and AMD GPUs resided in different IOMMU groups:
+For my system, I was lucky because the NVIDIA and AMD GPUs resided in different IOMMU groups.
+
 ```
 ...
 
 ...
 ```
+You might be wondering why certain systems have isolated IOMMU groups and others don't. This is largely the consequence of motherboard + chipset design...
 
-If your setup is like mine and you had isolated IOMMU groups, then you can skip the following section. Otherwise, please continue reading...
+If your setup is like mine and you had isolated IOMMU groups, feel free to skip the following section. Otherwise, please continue reading...
 
 #### ACS Override Patch [Optional]:
 
@@ -146,7 +142,7 @@ kernelstub           : INFO     System information:
     Root FS UUID:........2105a9ac-da30-41ba-87a9-75437bae74c6
     ESP Path:............/boot/efi
     ESP Partition:......./dev/nvme0n1p1
-    ESP Partition #:.....1
+    ESP Partition #:.....1alt="virtman_3"
     NVRAM entry #:.......-1
     Boot Variable #:.....0000
     Kernel Boot Options:.quiet loglevel=0 systemd.show_status=false splash amd_iommu=on
@@ -232,15 +228,61 @@ IOMMU Group 16 02:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/AT
 ...
 ```
 
-#### Download the virtIO drivers
+#### Download the iso drivers
 
-Since we're building a Windows VM, we're going to need to download and use the virtIO drivers. [virtIO](https://wiki.libvirt.org/page/Virtio) is a virtualization standard for network and disk device drivers.
+Since we're building a Windows VM, we're going to need to download and use the virtIO drivers. [virtIO](https://www.linux-kvm.org/page/Virtio) is a virtualization standard for network and disk device drivers. Adding the virtIO drivers can be done by creating an iso and additing it to the Windows VM during creation. Fedora provides the virtIO drivers for [direct download](https://docs.fedoraproject.org/en-US/quick-docs/creating-windows-virtual-machines-using-virtio-drivers/#virtio-win-direct-downloads).
 
-### Part 3: VM Orchestration
+Since I am passing through an entire NVMe SSD (1 TB), I won't need to install any 3rd party drivers on top of the virtIO driver. Passing through the SSD as a PCI device lets Windows deal with it as a native NVMe device and therefore should offer better performance. However if you want to use a raw disk image instead, things are going to be a little different... Make sure to follow the instructions in [this guide](https://frdmtoplay.com/virtualizing-windows-7-or-linux-on-a-nvme-drive-with-vfio/#builddriveriso) which shows you how to add 3rd party drivers and rebuild the virtIO iso.
+
+Last but not least, we're going to need to download the Windows 10 iso from Microsoft which you can find [here](https://www.microsoft.com/en-us/software-download/windows10ISO).
+
+### Part 2: Setting up the VM
+
+We're ready to begin creating our VM. There are basically two options for how to achieve this. (1) If you prefer a GUI, then tutorial guide you. Otherwise if you prefer bash scripts, go ahead and take a look at YuriAlek's series of single [GPU passthrough scripts](https://gitlab.com/YuriAlek/vfio) and customize them to fit your needs. The main difference between these two methods lies with the fact that the scripting approach uses [bare QEMU](https://manpages.debian.org/stretch/qemu-system-x86/qemu-system-x86_64.1.en.html) CLI commands, while the GUI approach uses [virt-manager](https://virt-manager.org/) which essentially builds on-top of QEMU and adds complexity.<sup>[7](#footnote7)</sup>
+
+Let's install some necessary packages:
+
+`$ sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-manager ovmf`
+
+You should now be able to start virt-manager from your list of applications. Select the button on the top left of the GUI to create a new VM:
+
+<div align="center">
+    <img src="./img/virtman_1.png" width="450">
+</div><br>
+
+Select the "Local install media" option. My ISOs are stored in my home directory `/home/user/.iso`, so I'll create a new pool and select the Windows 10 ISO from there:
+
+<div align="center">
+    <img src="./img/virtman_2.png" width="450">
+</div><br>
+
+Configure some custom RAM and CPU settings for your VM:
+
+<div align="center">
+    <img src="./img/virtman_3.png" width="450">
+</div><br>
+
+Next, the GUI asks us whether we want to enable storage for the VM. As already mentioned, my setup will be using SSD passthrough so I chose not to enable storage. You also have the option to create a raw disk image:
+
+<div align="center">
+    <img src="./img/virtman_4.png" width="450">
+</div><br>
+
+On the last step, review your settings and select a name for your VM. Make sure to select the checkbox "Customize configuration before installation" and click Finish:
+
+<div align="center">
+    <img src="./img/virtman_5.png" width="450">
+</div><br>
+
+A new window should appear with more advanced configuration options. You can alter these options through the GUI or the associated libvirt XML settings. Make sure that on the Overview page under Firmware you select `UEFI x86_64: /usr/share/OVMF/OVMF_CODE.fd`:
+
+<div align="center">
+    <img src="./img/virtman_6.png" width="450">
+</div><br>
 
 
 
-### Part 4: Performance
+### Part 3: Performance
 
 ### Credits + Useful Resources
 
@@ -292,3 +334,4 @@ Since we're building a Windows VM, we're going to need to download and use the v
 <a name="footnote5">5</a>. **Applying the ACS Override Patch may compromise system security**. Check out this [reddit post](https://www.reddit.com/r/VFIO/comments/bvif8d/official_reason_why_acs_override_patch_is_not_in/) to see why the ACS patch will probably never make its way upstream to the mainline kernel.
 <br/>
 <a name="footnote6">6</a>. Credit to the solution presented in [this post](https://forum.level1techs.com/t/how-to-apply-acs-override-patch-kubuntu-18-10-kernel-4-18-16/134204).
+<a name="footnote7">7</a> See the following [link](https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/) for more details and comparison between QEMU and virt-manager
