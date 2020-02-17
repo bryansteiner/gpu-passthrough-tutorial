@@ -39,29 +39,18 @@ You're going to need the following to achieve a high-performance VM:
 
 ### Part 1: Prerequisites
 
-Boot into BIOS and enable IOMMU. For Intel processors, look for something called VT-d. For AMD, look for something called AMD-Vi. Save the changes and restart the machine. Once you've booted into the host, make sure that IOMMU is enabled.
+Boot into BIOS and enable IOMMU. Next, you'll need to enable CPU virtualization. For Intel processors, look for something called `VT-d`. For AMD, look for something called `AMD-Vi`. My system was different so I had to enable a feature called `SVM Mode`. Save any changes and restart the machine.
 
-For Intel:
-```
-$ dmesg | grep -e DMAR -e IOMMU
-...
-DMAR:DRHD base: 0x000000feb03000 flags: 0x0
-IOMMU feb03000: ver 1:0 cap c9008020e30260 ecap 1000
-...
-```
-For AMD:
-```
-$ dmesg | grep AMD-Vi
-...
-AMD-Vi: Enabling IOMMU at 0000:00:00.2 cap 0x40
-AMD-Vi: Lazy IO/TLB flushing enabled
-AMD-Vi: Initialized for Passthrough Mode
-...
-```
+Once you've booted into the host, make sure that IOMMU is enabled: <br>
+`$ dmesg | grep IOMMU`
+
+Also check that CPU virtualization is enabled:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For Intel --> `$ dmesg | grep VT-d` <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For AMD --> `$ dmesg | grep AMD-Vi`
 
 Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd and these configuration files are often overwritten on updates, I will be using a tool called [kernelstub](https://github.com/pop-os/kernelstub).
 
-For Intel: `$ sudo kernelstub --add-options "intel_iommu=on"`<br>
+For Intel: `$ sudo kernelstub --add-options "intel_iommu=on"`<br/>
 For AMD: `$ sudo kernelstub --add-options "amd_iommu=on"`
 
 When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the NVIDIA or AMD drivers. The logic stems from the idea that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add another kernel parameter called `pci-stub`. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and reversing these actions when the VM stops (see Part 3). That way, whenever the VM isn't in use, the GPU is available to the host machine.<sup>[4](#footnote4)</sup>
@@ -96,20 +85,25 @@ Here we see that both the NVIDIA and AMD GPUs reside in IOMMU group 1. This pres
 1. One possible solution is to switch the PCI slot to which the AMD graphics card is attached. This may or may not produce the desired solution.
 2. An alternative solution is something called the [ACS Override Patch](https://queuecumber.gitlab.io/linux-acs-override/). For an in-depth discussion, it's definitely worth checking out this post from [Alex Williamson](https://vfio.blogspot.com/2014/08/iommu-groups-inside-and-out.html). Make sure to consider the risks.<sup>[5](#footnote5)</sup>
 
-For my system, I was lucky because the NVIDIA and AMD GPUs resided in different IOMMU groups.
+For my system, I was lucky<sup>[6](#footnote6)</sup> because the NVIDIA and AMD GPUs resided in different IOMMU groups:
 
 ```
 ...
-
+IOMMU Group 28 0a:00.0 VGA compatible controller [0300]: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti Rev. A] [10de:1e07] (rev a1)
+IOMMU Group 28 0a:00.1 Audio device [0403]: NVIDIA Corporation TU102 High Definition Audio Controller [10de:10f7] (rev a1)
+IOMMU Group 28 0a:00.2 USB controller [0c03]: NVIDIA Corporation TU102 USB 3.1 Controller [10de:1ad6] (rev a1)
+IOMMU Group 28 0a:00.3 Serial bus controller [0c80]: NVIDIA Corporation TU102 UCSI Controller [10de:1ad7] (rev a1)
+...
+IOMMU Group 31 0d:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 [1002:731f] (rev c4)
+IOMMU Group 32 0d:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 HDMI Audio [1002:ab38]
 ...
 ```
-You might be wondering why certain systems have isolated IOMMU groups and others don't. This is largely the consequence of motherboard + chipset design...
 
-If your setup is like mine and you had isolated IOMMU groups, feel free to skip the following section. Otherwise, please continue reading...
+If your setup is like mine<sup>[7](#footnote7)</sup> and you had isolated IOMMU groups, feel free to skip the following section. Otherwise, please continue reading...
 
 #### ACS Override Patch [Optional]:
 
-For most linux distributions, the ACS Override Patch requires you to download the kernel source code, manually insert the ACS patch, compile + install the kernel, and then boot directly from the newly patched kernel.<sup>[6](#footnote6)</sup>
+For most linux distributions, the ACS Override Patch requires you to download the kernel source code, manually insert the ACS patch, compile + install the kernel, and then boot directly from the newly patched kernel.<sup>[8](#footnote8)</sup>
 
 Since I'm running a Debian-based distribution, I can use one of the [pre-compiled kernels](https://queuecumber.gitlab.io/linux-acs-override/) with the ACS patch already applied. After extracting the package contents, install the kernel and headers:
 
@@ -228,19 +222,19 @@ IOMMU Group 16 02:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/AT
 ...
 ```
 
-#### Download the iso drivers
+#### Download the ISO files
 
-Since we're building a Windows VM, we're going to need to download and use the virtIO drivers. [virtIO](https://www.linux-kvm.org/page/Virtio) is a virtualization standard for network and disk device drivers. Adding the virtIO drivers can be done by creating an iso and additing it to the Windows VM during creation. Fedora provides the virtIO drivers for [direct download](https://docs.fedoraproject.org/en-US/quick-docs/creating-windows-virtual-machines-using-virtio-drivers/#virtio-win-direct-downloads).
+Since we're building a Windows VM, we're going to need to download and use the virtIO drivers. [virtIO](https://www.linux-kvm.org/page/Virtio) is a virtualization standard for network and disk device drivers. Adding the virtIO drivers can be done by attaching its relevant ISO to the Windows VM during creation. Fedora provides the virtIO drivers for [direct download](https://docs.fedoraproject.org/en-US/quick-docs/creating-windows-virtual-machines-using-virtio-drivers/#virtio-win-direct-downloads).
 
-Since I am passing through an entire NVMe SSD (1 TB), I won't need to install any 3rd party drivers on top of the virtIO driver. Passing through the SSD as a PCI device lets Windows deal with it as a native NVMe device and therefore should offer better performance. However if you want to use a raw disk image instead, things are going to be a little different... Make sure to follow the instructions in [this guide](https://frdmtoplay.com/virtualizing-windows-7-or-linux-on-a-nvme-drive-with-vfio/#builddriveriso) which shows you how to add 3rd party drivers and rebuild the virtIO iso.
+Since I am passing through an entire NVMe SSD (1 TB), I won't need to install any 3rd party drivers on top of the virtIO driver. Passing through the SSD as a PCI device lets Windows deal with it as a native NVMe device and therefore *should* offer better performance. If you choose to use a raw disk image instead, things are going to be a little different... Make sure to follow the instructions in [this guide](https://frdmtoplay.com/virtualizing-windows-7-or-linux-on-a-nvme-drive-with-vfio/#builddriveriso). The guide will show you how to add 3rd party drivers on top of the existing virtIO drivers by rebuilding the ISO.
 
-Last but not least, we're going to need to download the Windows 10 iso from Microsoft which you can find [here](https://www.microsoft.com/en-us/software-download/windows10ISO).
+For the final step, we're going to need to download the Windows 10 ISO from Microsoft which you can find [here](https://www.microsoft.com/en-us/software-download/windows10ISO).
 
 ### Part 2: Setting up the VM
 
-We're ready to begin creating our VM. There are basically two options for how to achieve this. (1) If you prefer a GUI, then tutorial guide you. Otherwise if you prefer bash scripts, go ahead and take a look at YuriAlek's series of single [GPU passthrough scripts](https://gitlab.com/YuriAlek/vfio) and customize them to fit your needs. The main difference between these two methods lies with the fact that the scripting approach uses [bare QEMU](https://manpages.debian.org/stretch/qemu-system-x86/qemu-system-x86_64.1.en.html) CLI commands, while the GUI approach uses [virt-manager](https://virt-manager.org/) which essentially builds on-top of QEMU and adds complexity.<sup>[7](#footnote7)</sup>
+We're ready to begin creating our VM. There are basically two options for how to achieve this: (1) If you prefer a GUI approach, then follow the rest of this tutorial. (2) If you prefer bash scripts, take a look at YuriAlek's series of [GPU-passthrough scripts](https://gitlab.com/YuriAlek/vfio) and customize them to fit your needs. The main difference between these two methods lies with the fact that the scripting approach uses [bare QEMU](https://manpages.debian.org/stretch/qemu-system-x86/qemu-system-x86_64.1.en.html) CLI commands, while the GUI approach uses [virt-manager](https://virt-manager.org/). Virt-manager essentially builds on-top of the QEMU base-layer and adds other features + complexity.<sup>[9](#footnote9)</sup>
 
-Let's install some necessary packages:
+Time to install some necessary packages:
 
 `$ sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-manager ovmf`
 
@@ -281,9 +275,10 @@ A new window should appear with more advanced configuration options. You can alt
 </div><br>
 
 
-### Part 3: Performance
 
-### Part 4: Benchmarks
+
+
+### Part 3: Performance
 
 ### Credits + Useful Resources
 
@@ -325,16 +320,30 @@ A new window should appear with more advanced configuration options. You can alt
     - [Alex Williamson - An Introduction to PCI Device Assignment with VFIO](https://www.youtube.com/watch?v=WFkdTFTOTpA&feature=emb_title)
 
 ### Footnotes
-<a name="footnote1">1</a>. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News for more information. 
+<a name="footnote1">1</a>. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News for more information.
 <br>
+
 <a name="footnote2">2</a>. I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
 <br>
+
 <a name="footnote3">3</a>. Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
 <br>
+
 <a name="footnote4">4</a>. I specifically wanted my Linux host to be able to perform [CUDA](https://developer.nvidia.com/cuda-downloads) work on the attached NVIDIA gpu. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use it [cuDNN](https://developer.nvidia.com/cudnn) for ML/AI applications.
 <br>
+
 <a name="footnote5">5</a>. **Applying the ACS Override Patch may compromise system security**. Check out this [reddit post](https://www.reddit.com/r/VFIO/comments/bvif8d/official_reason_why_acs_override_patch_is_not_in/) to see why the ACS patch will probably never make its way upstream to the mainline kernel.
 <br>
-<a name="footnote6">6</a>. Credit to the solution presented in [this post](https://forum.level1techs.com/t/how-to-apply-acs-override-patch-kubuntu-18-10-kernel-4-18-16/134204).
+
+<a name="footnote6">6</a>. I'm actually being a bit disingenuous here... I deliberately purchased hardware that I knew would provide ACS implementation (and hence good IOMMU isolation). After flashing the most recent version of my motherboard's BIOS, I made sure to enable the following features under the *AMD CBS* menu: `ACS Enable`, `AER CAP`, `ARI Support`.
 <br>
-<a name="footnote7">7</a>. See the following [link](https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/) for more details and comparison between QEMU and virt-manager
+
+<a name="footnote7">7</a>.
+AMD CPUs/motherboards/chipsets tend to provide better ACS support than their Intel counterparts. The Intel Xeon family of processors is a notable exception. Xeon is mainly targeted at non-consumer workstations and thus are an excellent choice for PCI/VGA passthrough. Be aware that they do command a *hefty* price tag.
+<br>
+
+<a name="footnote8">8</a>. Credit to the solution presented in [this post](https://forum.level1techs.com/t/how-to-apply-acs-override-patch-kubuntu-18-10-kernel-4-18-16/134204).
+<br>
+
+<a name="footnote9">9</a>. See [this link](https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/) for more details and comparison between QEMU and virt-manager
+<br>
