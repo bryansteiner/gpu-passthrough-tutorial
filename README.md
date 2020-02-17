@@ -337,4 +337,4 @@ A new window should appear with more advanced configuration options. You can alt
 <br>
 <a name="footnote6">6</a>. Credit to the solution presented in [this post](https://forum.level1techs.com/t/how-to-apply-acs-override-patch-kubuntu-18-10-kernel-4-18-16/134204).
 <br>
-<a name="footnote7">7</a> See the following [link](https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/) for more details and comparison between QEMU and virt-manager
+<a name="footnote7">7</a>. See the following [link](https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/) for more details and comparison between QEMU and virt-manager
