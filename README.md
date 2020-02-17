@@ -274,11 +274,65 @@ A new window should appear with more advanced configuration options. You can alt
     <img src="./img/virtman_6.png" width="450">
 </div><br>
 
+Go to the CPUs page and remove the check next to `Copy host CPU configuration` and under Model type `host-passthrough`. Also make sure to check the option for `Enable available CPU security flaw mitigations` to prevent against Spectre/Meltdown vulnerabilities.
 
+<div align="center">
+    <img src="./img/virtman_7.png" width="450">
+</div><br>
 
+I've chosen to remove several of the menu options that won't be useful to my setup (feel free to keep them if you'd like):
 
+<div align="center">
+    <img src="./img/virtman_8.png" width="450">
+</div><br>
 
-### Part 3: Performance
+Let's add the virtIO drivers. Click 'Add Hardware' and under 'Storage', create a custom storage device of type `CDROM`. Make sure to locate the ISO image for the virtIO drivers from earlier:
+
+<div align="center">
+    <img src="./img/virtman_9.png" width="450">
+</div><br>
+
+Under the NIC menu, change the device model to `virtIO` for improved performance:
+
+<div align="center">
+    <img src="./img/virtman_10.png" width="450">
+</div><br>
+
+Now it's time to configure our passthrough devices! Click 'Add Hardware' and under 'PCI Host Device', select the Bus IDs corresponding to your GPU.
+
+<div align="center">
+    <img src="./img/virtman_11.png" width="450">
+</div><br>
+
+Make sure to repeat this step for all the devices associated with your GPU in the same IOMMU group (usually VGA, audio controller, etc.):
+
+<div align="center">
+    <img src="./img/virtman_12.png" width="450">
+</div><br>
+
+Since I'm passing through an entire disk to my VM, I selected the Bus ID corresponding to the 1TB Samsung NVMe SSD which has Windows 10 (and my games) installed on it.
+
+<div align="center">
+    <img src="./img/virtman_13.png" width="450">
+</div><br>
+
+Then under the 'Boot Options' menu, I added a check next to `Enable boot menu` and reorganized the devices so that I could boot directly from the 1TB SSD:
+
+<div align="center">
+    <img src="./img/virtman_14.png" width="450">
+</div><br>
+
+You can now go ahead and select the USB Host Devices you'd like to passthrough to your guest VM (usually a keyboard, mouse, etc.). Please note that these devices will be held by the guest VM from the moment it's created until its stopped and will be unavailable to the host.<sup>[10](#footnote10)</sup>
+
+<div align="center">
+    <img src="./img/virtman_15.png" width="450">
+</div><br>
+
+Unfortunately, not everything can be accomplished using the virt-manager GUI. For the next several steps, we'll need to do some finer tuning by directly editing the XML:
+
+### Part 4: VM Logistics
+
+### Part 4: Performance
 
 ### Credits + Useful Resources
 
@@ -347,3 +401,5 @@ AMD CPUs/motherboards/chipsets tend to provide better ACS support than their Int
 
 <a name="footnote9">9</a>. See [this link](https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/) for more details and comparison between QEMU and virt-manager
 <br>
+
+<a name="footnote10">10</a>. See [here](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough/#About_keyboard_and_mouse) for several software and hardware solutions for sharing your keyboard and mouse across your host machine and guest VM.
