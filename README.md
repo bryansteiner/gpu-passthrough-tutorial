@@ -1,14 +1,40 @@
-# GPU Passthrough Tutorial
+<h1>
+    GPU Passthrough Tutorial
+</h1>
 
-In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a guest VM running Windows 10.
+<h2>
+    Table of Contents
+</h2>
+
+* [Introduction](#introduction)
+    * [Considerations](#considerations)
+    * [Hardware Requirements](#hardware_requirements)
+    * [Hardware Setup](#hardware_setup)
+* [Tutorial](#tutorial)
+    * [Part 1: Preqrequisites](#part1)
+    * [Part 2: VM Logistics](#part2)
+    * [Part 3: Creating the VM](#part3)
+    * [Part 4: Improving VM Performance](#part4)
+    * [Part 5: Benchmarks](#part5)
+* [Credits & Resources](#credits)
+* [Footnotes](#footnotes)
+
+<h2 name="introduction">
+    Introduction
+</h2>
+
+In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a guest VM running Windows 10. I am also running the Linux kernel version 5.5.3.
 
 <div align="center">
-    <a href="https://events.static.linuxfound.org/sites/events/files/slides/KVM,%20OpenStack,%20and%20the%20Open%20Cloud%20-%20ANJ%20MK%20%20-%2013Oct14.pdf">
-        <img src="./img/kvm-architecture.jpg" width="500">
-    </a>
+    <img src="./img/kvm-architecture.jpg" width="500">
+    <p>
+        Source: <a href="https://events.static.linuxfound.org/sites/events/files/slides/KVM,%20OpenStack,%20and%20the%20Open%20Cloud%20-%20ANJ%20MK%20%20-%2013Oct14.pdf">Open Virtualization Alliance (Jollans, IBM , Kadera, Intel)</a>
+    </p>
 </div>
 
-### Considerations
+<h3 name="considerations">
+    Considerations
+</h3>
 
 The main reason I wanted to get this setup working was because I found myself tired of using a dual-boot setup. I wanted to launch a Windows VM specifically for gaming while still be able to use my Linux host for development work.
 
@@ -16,14 +42,17 @@ At this point, you might be wondering... Why not just game on Linux? This is def
 
 For this tutorial, I will be using a GPU-passthrough setup. Specifically, I will be passing through an Nvidia GPU to my guest VM while using an AMD GPU for my host. You could easily substitute an iGPU for the host but I chose to use a dGPU for performance reasons.<sup>[2](#footnote2)</sup>
 
-### Hardware Requirements
+<h3 name="hardware_requirements"> Hardware Requirements </h3>
 
 You're going to need the following to achieve a high-performance VM:
 - Two graphics cards.
 - [Hardware the supports IOMMU](https://en.wikipedia.org/wiki/List_of_IOMMU-supporting_hardware).
 - A monitor with two inputs.<sup>[3](#footnote3)</sup>
 
-### My Hardware Setup
+<h3 name="hardware_setup">
+    Hardware Setup
+</h3>
+
 - CPU:
     - AMD Ryzen 9 3900X
 - Motherboard:
@@ -37,11 +66,23 @@ You're going to need the following to achieve a high-performance VM:
     - Samsung 970 EVO Plus SSD 500GB - M.2 NVMe (host)
     - Samsung 970 EVO Plus SSD 1TB - M.2 NVMe (guest)
 
-### Part 1: Prerequisites
+<h2 name="tutorial">
+    Tutorial
+</h2>
 
-Boot into BIOS and enable IOMMU. Next, you'll need to enable CPU virtualization. For Intel processors, look for something called `VT-d`. For AMD, look for something called `AMD-Vi`. My system was different so I had to enable a feature called `SVM Mode`. Save any changes and restart the machine.
+<h3 name="part1">
+    Part 1: Prerequisites
+</h3>
 
-Once you've booted into the host, make sure that IOMMU is enabled: <br>
+Before we begin, let's install some necessary packages:
+
+```
+$ sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-manager ovmf
+```
+
+Restart your machine and boot into BIOS. Enable a feature called `IOMMU`. You'll also need to enable CPU virtualization. For Intel processors, look for something called `VT-d`. For AMD, look for something called `AMD-Vi`. My system was unique and I had to enable a feature called `SVM Mode`. Save any changes and restart the machine.
+
+Once you've booted into the host, make sure that IOMMU is enabled:<br>
 `$ dmesg | grep IOMMU`
 
 Also check that CPU virtualization is enabled:<br>
@@ -53,7 +94,7 @@ Now you're going to need to pass the hardware-enabled IOMMU functionality into t
 For Intel: `$ sudo kernelstub --add-options "intel_iommu=on"`<br/>
 For AMD: `$ sudo kernelstub --add-options "amd_iommu=on"`
 
-When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the NVIDIA or AMD drivers. The logic stems from the idea that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add another kernel parameter called `pci-stub`. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and reversing these actions when the VM stops (see Part 3). That way, whenever the VM isn't in use, the GPU is available to the host machine.<sup>[4](#footnote4)</sup>
+When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the NVIDIA or AMD drivers. The logic stems from the idea that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add another kernel parameter called `pci-stub`. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and reversing these actions when the VM stops (see Part 2). That way, whenever the VM isn't in use, the GPU is available to the host machine.<sup>[4](#footnote4)</sup>
 
 Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. We'll want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following script:
 
@@ -101,7 +142,9 @@ IOMMU Group 32 0d:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/AT
 
 If your setup is like mine<sup>[7](#footnote7)</sup> and you had isolated IOMMU groups, feel free to skip the following section. Otherwise, please continue reading...
 
-#### ACS Override Patch [Optional]:
+<h4>
+    ACS Override Patch [Optional]:
+</h4>
 
 For most linux distributions, the ACS Override Patch requires you to download the kernel source code, manually insert the ACS patch, compile + install the kernel, and then boot directly from the newly patched kernel.<sup>[8](#footnote8)</sup>
 
@@ -222,7 +265,9 @@ IOMMU Group 16 02:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/AT
 ...
 ```
 
-#### Download the ISO files
+<h4>
+    Download the ISO files [Mandatory]:
+</h4>
 
 Since we're building a Windows VM, we're going to need to download and use the virtIO drivers. [virtIO](https://www.linux-kvm.org/page/Virtio) is a virtualization standard for network and disk device drivers. Adding the virtIO drivers can be done by attaching its relevant ISO to the Windows VM during creation. Fedora provides the virtIO drivers for [direct download](https://docs.fedoraproject.org/en-US/quick-docs/creating-windows-virtual-machines-using-virtio-drivers/#virtio-win-direct-downloads).
 
@@ -230,15 +275,19 @@ Since I am passing through an entire NVMe SSD (1 TB), I won't need to install an
 
 For the final step, we're going to need to download the Windows 10 ISO from Microsoft which you can find [here](https://www.microsoft.com/en-us/software-download/windows10ISO).
 
-### Part 2: Setting up the VM
+<h3 name="part2">
+    Part 2: VM Logistics
+</h3>
+
+As mentioned earlier...
+
+<h3 name="part3">
+    Part 3: Creating the VM
+</h3>
 
 We're ready to begin creating our VM. There are basically two options for how to achieve this: (1) If you prefer a GUI approach, then follow the rest of this tutorial. (2) If you prefer bash scripts, take a look at YuriAlek's series of [GPU-passthrough scripts](https://gitlab.com/YuriAlek/vfio) and customize them to fit your needs. The main difference between these two methods lies with the fact that the scripting approach uses [bare QEMU](https://manpages.debian.org/stretch/qemu-system-x86/qemu-system-x86_64.1.en.html) CLI commands, while the GUI approach uses [virt-manager](https://virt-manager.org/). Virt-manager essentially builds on-top of the QEMU base-layer and adds other features + complexity.<sup>[9](#footnote9)</sup>
 
-Time to install some necessary packages:
-
-`$ sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils virt-manager ovmf`
-
-You should now be able to start virt-manager from your list of applications. Select the button on the top left of the GUI to create a new VM:
+Go ahead and start virt-manager from your list of applications. Select the button on the top left of the GUI to create a new VM:
 
 <div align="center">
     <img src="./img/virtman_1.png" width="450">
@@ -330,12 +379,70 @@ You can now go ahead and select the USB Host Devices you'd like to passthrough t
 
 Unfortunately, not everything we need can be accomplished within the virt-manager GUI. For the rest of this section, we'll have to do some fine-tuning by directly editing the XML:
 
+<div align="center">
+    <img src="./img/virtman_16.png" width="450">
+</div><br>
 
-### Part 3: VM Logistics
+If you're like me and you're passing through an Nvidia GPU to your VM, then you might run into the following common roadblock. [Error 43](https://passthroughpo.st/apply-error-43-workaround/) occurs because Nvidia intentionally disables virtualization features on its GeForce line of cards. The way to deal with this is to have the hypervisor hide its existence. Inside the `hyperv` section, add a tag for `vendor_id` such that `state="on"` and `value` is any string up to 12 characters long:
 
-### Part 4: Performance
+```
+<features>
+    ...
+    <hyperv>
+        <relaxed state="on"/>
+        <vapic state="on"/>
+        <spinlocks state="on" retries="8191"/>
+        <vendor_id state="on" value="kvm hyperv"/>
+    </hyperv>
+    ...
+</features>
+```
 
-### Credits + Useful Resources
+In addition, instruct the kvm to hide its state by adding the following code directly below the `hyperv` section:
+
+```
+<features>
+    ...
+    <hyperv>
+        ...
+    </hyperv>
+    <kvm>
+      <hidden state="on"/>
+    </kvm>
+    ...
+</features>
+```
+
+Finally, if you're using QEMU 4.0 with the q35 chipset you also need to add the following code at the end of the `features` tag:
+
+```
+<features>
+    ...
+    <ioapic driver="kvm"/>
+</features>
+```
+
+Now you should have no issues with regards to the Nvidia Error 43. Later on, we will be making more changes to the XML to achieve better performance (see Part 4). At this point however, you can apply the changes and select "Begin Installation" at the top left of the GUI. Please be aware that this may take several minutes to complete.
+
+<h3 name="part4">
+    Part 4: Improving VM Performance
+</h3>
+
+
+
+
+
+<h3 name="part5">
+    Part 5: Benchmarks
+</h3>
+
+
+
+
+
+<h2 name="credits">
+    Credits & Resources
+</h2>
 
 - Wikis
     - [ArchWiki](https://wiki.archlinux.org/)
@@ -349,7 +456,7 @@ Unfortunately, not everything we need can be accomplished within the virt-manage
         - [Domain XML](https://libvirt.org/formatdomain.html)
 - Tutorials
     - [Heiko Sieger - Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
-    - Alex Williamson -VFIO GPU How To series
+    - Alex Williamson - VFIO GPU How To series
         - [Part 1 - The hardware](https://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-1-hardware.html)
         - [Part 2 - Expectations](https://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-2.html)
         - [Part 3 - Host configuration](https://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-3-host.html)
@@ -366,6 +473,7 @@ Unfortunately, not everything we need can be accomplished within the virt-manage
     - [The Passthrough Post](https://passthroughpo.st/)
         - [VFIO PC Builds](https://passthroughpo.st/vfio-increments/)
         - [Howto: Libvirt Automation Using VFIO-Tools Hook Helper](https://passthroughpo.st/simple-per-vm-libvirt-hooks-with-the-vfio-tools-hook-helper/)
+        - [How to Apply the Error 43 Workaround](https://passthroughpo.st/apply-error-43-workaround/)
     - [Heiko Sieger](https://heiko-sieger.info/)
         - [Glossary of Virtualization Terms](https://heiko-sieger.info/glossary-of-virtualization-terms/)
         - [IOMMU Groups – What You Need to Consider](https://heiko-sieger.info/iommu-groups-what-you-need-to-consider/)
@@ -374,33 +482,47 @@ Unfortunately, not everything we need can be accomplished within the virt-manage
 - Lectures
     - [Alex Williamson - An Introduction to PCI Device Assignment with VFIO](https://www.youtube.com/watch?v=WFkdTFTOTpA&feature=emb_title)
 
-### Footnotes
-<a name="footnote1">1</a>. Check out [this thread](https://news.ycombinator.com/item?id=18328323) from Hacker News for more information.
-<br>
+<h2 name="footnotes">
+    Footnotes
+</h2>
 
-<a name="footnote2">2</a>. I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
-<br>
-
-<a name="footnote3">3</a>. Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
-<br>
-
-<a name="footnote4">4</a>. I specifically wanted my Linux host to be able to perform [CUDA](https://developer.nvidia.com/cuda-downloads) work on the attached NVIDIA gpu. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use it [cuDNN](https://developer.nvidia.com/cudnn) for ML/AI applications.
-<br>
-
-<a name="footnote5">5</a>. **Applying the ACS Override Patch may compromise system security**. Check out this [reddit post](https://www.reddit.com/r/VFIO/comments/bvif8d/official_reason_why_acs_override_patch_is_not_in/) to see why the ACS patch will probably never make its way upstream to the mainline kernel.
-<br>
-
-<a name="footnote6">6</a>. I'm actually being a bit disingenuous here... I deliberately purchased hardware that I knew would provide ACS implementation (and hence good IOMMU isolation). After flashing the most recent version of my motherboard's BIOS, I made sure to enable the following features under the *AMD CBS* menu: `ACS Enable`, `AER CAP`, `ARI Support`.
-<br>
-
-<a name="footnote7">7</a>.
-AMD CPUs/motherboards/chipsets tend to provide better ACS support than their Intel counterparts. The Intel Xeon family of processors is a notable exception. Xeon is mainly targeted at non-consumer workstations and thus are an excellent choice for PCI/VGA passthrough. Be aware that they do command a *hefty* price tag.
-<br>
-
-<a name="footnote8">8</a>. Credit to the solution presented in [this post](https://forum.level1techs.com/t/how-to-apply-acs-override-patch-kubuntu-18-10-kernel-4-18-16/134204).
-<br>
-
-<a name="footnote9">9</a>. See [this link](https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/) for more details and comparison between QEMU and virt-manager
-<br>
-
-<a name="footnote10">10</a>. See [here](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough/#About_keyboard_and_mouse) for several software and hardware solutions for sharing your keyboard and mouse across your host machine and guest VM.
+<ol>
+    <li name="footnote1">
+        Check out <a href="https://news.ycombinator.com/item?id=18328323">this thread</a> from Hacker News for more information.
+    </li>
+    <br>
+    <li name="footnote2">
+        I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
+    </li>
+    <br>
+    <li name="footnote3">
+        Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
+    </li>
+    <br>
+    <li name="footnote4">
+        I specifically wanted my Linux host to be able to perform <a href="https://developer.nvidia.com/cuda-downloads">CUDA</a> work on the attached Nvidia GPU. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use <a href="https://developer.nvidia.com/cudnn">cuDNN</a> for ML/AI applications.
+    </li>
+    <br>
+    <li name="footnote5">
+        Applying the ACS Override Patch <b>may compromise system security</b>. Check out <a href="https://www.reddit.com/r/VFIO/comments/bvif8d/official_reason_why_acs_override_patch_is_not_in/">this post</a> to see why the ACS patch will probably never make its way upstream to the mainline kernel.
+    </li>
+    <br>
+    <li name="footnote6">
+        I'm actually being a bit disingenuous here... I deliberately purchased hardware that I knew would provide ACS implementation (and hence good IOMMU isolation). After flashing the most recent version of my motherboard's BIOS, I made sure to enable the following features under the "AMD CBS" menu: <code>ACS Enable</code>, <code>AER CAP</code>, <code>ARI Support</code>.
+    </li>
+    <br>
+    <li name="footnote7">
+        AMD CPUs/motherboards/chipsets tend to provide better ACS support than their Intel counterparts. The Intel Xeon family of processors is a notable exception. Xeon is mainly targeted at non-consumer workstations and thus are an excellent choice for PCI/VGA passthrough. Be aware that they do command a hefty price tag.
+    </li>
+    <br>
+    <li name="footnote8">
+        Credit to the solution presented in <a href="https://forum.level1techs.com/t/how-to-apply-acs-override-patch-kubuntu-18-10-kernel-4-18-16/134204">this post</a>.
+    </li>
+    <br>
+    <li name="footnote9">
+        See <a href="https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/">this link</a> for more details and a comparison between QEMU and virt-manager
+    </li>
+    <br>
+    <li name="footnote10">
+        See <a href="https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough/#About_keyboard_and_mouse">this link</a> for software/hardware solutions that share your keyboard and mouse across your host and guest.
+    </li>
