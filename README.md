@@ -490,39 +490,31 @@ Now you should have no issues with regards to the Nvidia Error 43. Later on, we 
     <li name="footnote1">
         Check out <a href="https://news.ycombinator.com/item?id=18328323">this thread</a> from Hacker News for more information.
     </li>
-    <br>
     <li name="footnote2">
         I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
     </li>
-    <br>
     <li name="footnote3">
         Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
     </li>
-    <br>
     <li name="footnote4">
         I specifically wanted my Linux host to be able to perform <a href="https://developer.nvidia.com/cuda-downloads">CUDA</a> work on the attached Nvidia GPU. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use <a href="https://developer.nvidia.com/cudnn">cuDNN</a> for ML/AI applications.
     </li>
-    <br>
     <li name="footnote5">
         Applying the ACS Override Patch <b>may compromise system security</b>. Check out <a href="https://www.reddit.com/r/VFIO/comments/bvif8d/official_reason_why_acs_override_patch_is_not_in/">this post</a> to see why the ACS patch will probably never make its way upstream to the mainline kernel.
     </li>
-    <br>
     <li name="footnote6">
         I'm actually being a bit disingenuous here... I deliberately purchased hardware that I knew would provide ACS implementation (and hence good IOMMU isolation). After flashing the most recent version of my motherboard's BIOS, I made sure to enable the following features under the "AMD CBS" menu: <code>ACS Enable</code>, <code>AER CAP</code>, <code>ARI Support</code>.
     </li>
-    <br>
     <li name="footnote7">
         AMD CPUs/motherboards/chipsets tend to provide better ACS support than their Intel counterparts. The Intel Xeon family of processors is a notable exception. Xeon is mainly targeted at non-consumer workstations and thus are an excellent choice for PCI/VGA passthrough. Be aware that they do command a hefty price tag.
     </li>
-    <br>
     <li name="footnote8">
         Credit to the solution presented in <a href="https://forum.level1techs.com/t/how-to-apply-acs-override-patch-kubuntu-18-10-kernel-4-18-16/134204">this post</a>.
     </li>
-    <br>
     <li name="footnote9">
         See <a href="https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/">this link</a> for more details and a comparison between QEMU and virt-manager
     </li>
-    <br>
     <li name="footnote10">
         See <a href="https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough/#About_keyboard_and_mouse">this link</a> for software/hardware solutions that share your keyboard and mouse across your host and guest.
     </li>
+</ol>
