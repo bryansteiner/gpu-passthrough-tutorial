@@ -1,7 +1,3 @@
-<h1>
-    GPU Passthrough Tutorial
-</h1>
-
 <h2>
     Table of Contents
 </h2>
