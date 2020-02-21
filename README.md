@@ -328,9 +328,10 @@ You can now go ahead and select the USB Host Devices you'd like to passthrough t
     <img src="./img/virtman_15.png" width="450">
 </div><br>
 
-Unfortunately, not everything can be accomplished using the virt-manager GUI. For the next several steps, we'll need to do some finer tuning by directly editing the XML:
+Unfortunately, not everything we need can be accomplished within the virt-manager GUI. For the rest of this section, we'll have to do some fine-tuning by directly editing the XML:
 
-### Part 4: VM Logistics
+
+### Part 3: VM Logistics
 
 ### Part 4: Performance
 
