@@ -339,30 +339,7 @@ VIRSH_GPU_SERIAL=pci_0000_0a_00_3
 VIRSH_NVME_SSD=pci_0000_04_00_0
 ```
 
-Make sure to substitute the correct bus addresses for the devices you'd like to passthrough to your VM (in my case GPU and SSD).
-
-Now create two executable bash scripts: `bind_vfio.sh` and `unbind_vfio.sh` (see below) and place them so that your directory structure looks like this:
-
-```
-$ tree /etc/libvirt/hooks/
-/etc/libvirt/hooks/
-├── kvm.conf
-├── qemu
-└── qemu.d
-    └── win10
-        ├── prepare
-        │   └── begin
-        │       └── bind_vfio.sh
-        ├── release
-        │   └── end
-        │       └── unbind_vfio.sh
-        ├── start
-        │   └── begin
-        ├── started
-        │   └── begin
-        └── stopped
-            └── end
-```
+Make sure to substitute the correct bus addresses for the devices you'd like to passthrough to your VM (in my case a GPU and SSD). Now create two executable bash scripts:
 
 `bind_vfio.sh`:
 ```
@@ -406,7 +383,29 @@ modprobe -r vfio_iommu_type1
 modprobe -r vfio
 ```
 
-We're done messing with libvirt hooks, at least for now... We'll revisit this topic later on when we make performance tweaks to our VM (see Part 4).
+Place these scripts so that your directory structure looks like this:
+```
+$ tree /etc/libvirt/hooks/
+/etc/libvirt/hooks/
+├── kvm.conf
+├── qemu
+└── qemu.d
+    └── win10
+        ├── prepare
+        │   └── begin
+        │       └── bind_vfio.sh
+        ├── release
+        │   └── end
+        │       └── unbind_vfio.sh
+        ├── start
+        │   └── begin
+        ├── started
+        │   └── begin
+        └── stopped
+            └── end
+```
+
+We've succesfully created libvirt hook scripts to dynamically bind the vfio drivers before the VM starts and unbind these drivers after the VM terminates. At the moment, we're done messing with libvirt hooks. We'll revisit this topic later on when we make performance tweaks to our VM (see Part 4).
 
 <h3 name="part3">
     Part 3: Creating the VM
