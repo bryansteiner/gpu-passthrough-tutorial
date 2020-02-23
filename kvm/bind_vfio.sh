@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## Load the config file
-source "/home/bsteiner/.kvm/kvm.conf"
+source "/etc/libvirt/hooks/kvm.conf"
 
 ## Load vfio
 modprobe vfio
