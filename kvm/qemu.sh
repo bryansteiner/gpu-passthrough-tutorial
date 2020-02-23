@@ -4,7 +4,7 @@
 [[ "$EUID" -ne 0 ]] && echo "Please run as root" && exit 1
 
 ## Load the config file
-source "/home/bsteiner/.kvm/kvm.conf"
+source "/etc/libvirt/hooks/kvm.conf"
 
 ## Check libvirtd is running
 [[ $(systemctl status libvirtd | grep running) ]] || systemctl start libvirtd && sleep 1 && LIBVIRTD=STOPPED

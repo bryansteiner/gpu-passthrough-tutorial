@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## Load the config file
-source "/home/bsteiner/.kvm/kvm.conf"
+source "/etc/libvirt/hooks/kvm.conf"
 
 ## Calculate number of hugepages to allocate from memory (in MB)
 HUGEPAGES="$(($MEMORY/$(($(grep Hugepagesize /proc/meminfo | awk '{print $2}')/1024))))"

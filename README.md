@@ -36,7 +36,7 @@ The main reason I wanted to get this setup working was because I found myself ti
 
 At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch individual VMs with specific hardware attached to them. Performance wise, there are pros and cons to each approach.<sup>[1](#footnote1)</sup>
 
-For this tutorial, I will be using a GPU-passthrough setup. Specifically, I will be passing through an Nvidia GPU to my guest VM while using an AMD GPU for my host. You could easily substitute an iGPU for the host but I chose to use a dGPU for performance reasons.<sup>[2](#footnote2)</sup>
+For this tutorial, I will be using a GPU-passthrough setup. Specifically, I will be passing through an NVIDIA GPU to my guest VM while using an AMD GPU for my host. You could easily substitute an iGPU for the host but I chose to use a dGPU for performance reasons.<sup>[2](#footnote2)</sup>
 
 <h3 name="hardware_requirements"> Hardware Requirements </h3>
 
@@ -90,7 +90,7 @@ Now you're going to need to pass the hardware-enabled IOMMU functionality into t
 For Intel: `$ sudo kernelstub --add-options "intel_iommu=on"`<br/>
 For AMD: `$ sudo kernelstub --add-options "amd_iommu=on"`
 
-When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the NVIDIA or AMD drivers. The logic stems from the idea that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add another kernel parameter called `pci-stub`. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and reversing these actions when the VM stops (see Part 2). That way, whenever the VM isn't in use, the GPU is available to the host machine.<sup>[4](#footnote4)</sup>
+When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the nvidia/amd drivers. The logic stems from the fact that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add a kernel parameter called `pci-stub` with the ID of your GPU to achieve this. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and subsequently reversing these actions when the VM stops (see Part 2). That way, whenever the VM isn't in use, the GPU is available to the host machine on its native drivers.<sup>[4](#footnote4)</sup>
 
 Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. We'll want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following script:
 
@@ -275,7 +275,138 @@ For the final step, we're going to need to download the Windows 10 ISO from Micr
     Part 2: VM Logistics
 </h3>
 
-As mentioned earlier...
+As mentioned earlier, we are going to dynamically bind the vfio drivers before the VM starts and unbind these drivers after the VM terminates. To achieve this, we're going to use [libvirt hooks](https://libvirt.org/hooks.html). Libvirt has a hook system that allows you to run commands on startup or shutdown of a VM. All relevant scripts are located within the following directory: `/etc/libvirt/hooks`. If the directory doesn't exist, go ahead and create it. Lucky for us, The Passthrough POST has a [hook helper tool](https://passthroughpo.st/simple-per-vm-libvirt-hooks-with-the-vfio-tools-hook-helper/) to make our lives easier. Run the following commands to install the hook manager and make it executable:
+
+```
+$ sudo wget 'https://raw.githubusercontent.com/PassthroughPOST/VFIO-Tools/master/libvirt_hooks/qemu' \
+     -O /etc/libvirt/hooks/qemu
+$ sudo chmod +x /etc/libvirt/hooks/qemu
+```
+
+Go ahead and restart libvirt to use the newly installed hook helper:
+
+```
+$ sudo service libvirtd restart
+```
+
+Let's look at the most important hooks:
+
+```
+# Before a VM is started, before resources are allocated:
+/etc/libvirt/hooks/qemu.d/$vmname/prepare/begin/*
+
+# Before a VM is started, after resources are allocated:
+/etc/libvirt/hooks/qemu.d/$vmname/start/begin/*
+
+# After a VM has started up:
+/etc/libvirt/hooks/qemu.d/$vmname/started/begin/*
+
+# After a VM has shut down, before releasing its resources:
+/etc/libvirt/hooks/qemu.d/$vmname/stopped/end/*
+
+# After a VM has shut down, after resources are released:
+/etc/libvirt/hooks/qemu.d/$vmname/release/end/*
+```
+
+If we place an executable script in one of these directories, the hook manager will take care of everything else. I've chosen to name my VM "win10" so I set up my directory structure like this:
+
+```
+$ tree /etc/libvirt/hooks/
+/etc/libvirt/hooks/
+├── qemu
+└── qemu.d
+    └── win10
+        ├── prepare
+        │   └── begin
+        ├── release
+        │   └── end
+        ├── start
+        │   └── begin
+        ├── started
+        │   └── begin
+        └── stopped
+            └── end
+```
+
+It's time to get our hands dirty... Create a file named `kvm.conf` and place it under `/etc/libvirt/hooks/`. Add the following entries to the file:
+
+```
+## Virsh devices
+VIRSH_GPU_VIDEO=pci_0000_0a_00_0
+VIRSH_GPU_AUDIO=pci_0000_0a_00_1
+VIRSH_GPU_USB=pci_0000_0a_00_2
+VIRSH_GPU_SERIAL=pci_0000_0a_00_3
+VIRSH_NVME_SSD=pci_0000_04_00_0
+```
+
+Make sure to substitute the correct bus addresses for the devices you'd like to passthrough to your VM (in my case GPU and SSD).
+
+Now create two executable bash scripts: `bind_vfio.sh` and `unbind_vfio.sh` (see below) and place them so that your directory structure looks like this:
+
+```
+$ tree /etc/libvirt/hooks/
+/etc/libvirt/hooks/
+├── kvm.conf
+├── qemu
+└── qemu.d
+    └── win10
+        ├── prepare
+        │   └── begin
+        │       └── bind_vfio.sh
+        ├── release
+        │   └── end
+        │       └── unbind_vfio.sh
+        ├── start
+        │   └── begin
+        ├── started
+        │   └── begin
+        └── stopped
+            └── end
+```
+
+`bind_vfio.sh`:
+```
+#!/bin/bash
+
+## Load the config file
+source "/etc/libvirt/hooks/kvm.conf"
+
+## Load vfio
+modprobe vfio
+modprobe vfio_iommu_type1
+modprobe vfio_pci
+
+## Unbind gpu from nvidia and bind to vfio
+virsh nodedev-detach $VIRSH_GPU_VIDEO
+virsh nodedev-detach $VIRSH_GPU_AUDIO
+virsh nodedev-detach $VIRSH_GPU_USB
+virsh nodedev-detach $VIRSH_GPU_SERIAL
+## Unbind ssd from nvme and bind to vfio
+virsh nodedev-detach $VIRSH_NVME_SSD
+```
+
+`unbind_vfio.sh`:
+```
+#!/bin/bash
+
+## Load the config file
+source "/etc/libvirt/hooks/kvm.conf"
+
+## Unbind gpu from vfio and bind to nvidia
+virsh nodedev-reattach $VIRSH_GPU_VIDEO
+virsh nodedev-reattach $VIRSH_GPU_AUDIO
+virsh nodedev-reattach $VIRSH_GPU_USB
+virsh nodedev-reattach $VIRSH_GPU_SERIAL
+## Unbind ssd from vfio and bind to nvme
+virsh nodedev-reattach $VIRSH_NVME_SSD
+
+## Unload vfio
+modprobe -r vfio_pci
+modprobe -r vfio_iommu_type1
+modprobe -r vfio
+```
+
+We're done messing with libvirt hooks, at least for now... We'll revisit this topic later on when we make performance tweaks to our VM (see Part 4).
 
 <h3 name="part3">
     Part 3: Creating the VM
@@ -379,7 +510,7 @@ Unfortunately, not everything we need can be accomplished within the virt-manage
     <img src="./img/virtman_16.png" width="450">
 </div><br>
 
-If you're like me and you're passing through an Nvidia GPU to your VM, then you might run into the following common roadblock. [Error 43](https://passthroughpo.st/apply-error-43-workaround/) occurs because Nvidia intentionally disables virtualization features on its GeForce line of cards. The way to deal with this is to have the hypervisor hide its existence. Inside the `hyperv` section, add a tag for `vendor_id` such that `state="on"` and `value` is any string up to 12 characters long:
+If you're like me and you're passing through an NVIDIA GPU to your VM, then you might run into the following common roadblock. [Error 43](https://passthroughpo.st/apply-error-43-workaround/) occurs because NVIDIA intentionally disables virtualization features on its GeForce line of cards. The way to deal with this is to have the hypervisor hide its existence. Inside the `hyperv` section, add a tag for `vendor_id` such that `state="on"` and `value` is any string up to 12 characters long:
 
 ```
 <features>
@@ -418,7 +549,7 @@ Finally, if you're using QEMU 4.0 with the q35 chipset you also need to add the 
 </features>
 ```
 
-Now you should have no issues with regards to the Nvidia Error 43. Later on, we will be making more changes to the XML to achieve better performance (see Part 4). At this point however, you can apply the changes and select "Begin Installation" at the top left of the GUI. Please be aware that this may take several minutes to complete.
+Now you should have no issues with regards to the NVIDIA Error 43. Later on, we will be making more changes to the XML to achieve better performance (see Part 4). At this point however, you can apply the changes and select "Begin Installation" at the top left of the GUI. Please be aware that this may take several minutes to complete.
 
 <h3 name="part4">
     Part 4: Improving VM Performance
@@ -487,13 +618,13 @@ Now you should have no issues with regards to the Nvidia Error 43. Later on, we 
         Check out <a href="https://news.ycombinator.com/item?id=18328323">this thread</a> from Hacker News for more information.
     </li>
     <li name="footnote2">
-        I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (Nvidia/AMD).
+        I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (NVIDIA/AMD).
     </li>
     <li name="footnote3">
         Make sure that the monitor input used for your gaming VM supports FreeSync/G-Sync technology. In my case, I reserved the displayport 1.2 input for my gaming VM since G-Sync is not supported across HDMI (which was instead used for host graphics).
     </li>
     <li name="footnote4">
-        I specifically wanted my Linux host to be able to perform <a href="https://developer.nvidia.com/cuda-downloads">CUDA</a> work on the attached Nvidia GPU. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use <a href="https://developer.nvidia.com/cudnn">cuDNN</a> for ML/AI applications.
+        I specifically wanted my Linux host to be able to perform <a href="https://developer.nvidia.com/cuda-downloads">CUDA</a> work on the attached NVIDIA GPU. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use <a href="https://developer.nvidia.com/cudnn">cuDNN</a> for ML/AI applications.
     </li>
     <li name="footnote5">
         Applying the ACS Override Patch <b>may compromise system security</b>. Check out <a href="https://www.reddit.com/r/VFIO/comments/bvif8d/official_reason_why_acs_override_patch_is_not_in/">this post</a> to see why the ACS patch will probably never make its way upstream to the mainline kernel.
