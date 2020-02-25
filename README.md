@@ -19,7 +19,7 @@
     Introduction
 </h2>
 
-In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a guest VM running Windows 10. I am also running the Linux kernel version 5.5.3.
+In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a guest VM running Windows 10. I am also running the Linux kernel version 5.4.0.
 
 <div align="center">
     <img src="./img/kvm-architecture.jpg" width="500">
@@ -348,6 +348,11 @@ Make sure to substitute the correct bus addresses for the devices you'd like to 
 ## Load the config file
 source "/etc/libvirt/hooks/kvm.conf"
 
+## Unload nvidia
+modprobe -r nvidia_drm
+modprobe -r nvidia_uvm
+modprobe -r nvidia_modeset
+
 ## Load vfio
 modprobe vfio
 modprobe vfio_iommu_type1
@@ -381,6 +386,11 @@ virsh nodedev-reattach $VIRSH_NVME_SSD
 modprobe -r vfio_pci
 modprobe -r vfio_iommu_type1
 modprobe -r vfio
+
+## Load nvidia
+modprobe nvidia_modeset
+modprobe nvidia_uvm
+modprobe nvidia_drm
 ```
 
 Place these scripts so that your directory structure looks like this:
@@ -570,7 +580,10 @@ Now you should have no issues with regards to the NVIDIA Error 43. Later on, we 
     Credits & Resources
 </h2>
 
-- Wikis
+- Docs
+    - [Linux Kernel](https://www.kernel.org/doc/html/latest/)
+        - [KVM](https://www.kernel.org/doc/html/latest/virt/kvm/index.html)
+        - [VFIO](https://www.kernel.org/doc/html/latest/driver-api/vfio.html?highlight=vfio%20pci)
     - [ArchWiki](https://wiki.archlinux.org/)
         - [QEMU](https://wiki.archlinux.org/index.php/QEMU)
         - [KVM](https://wiki.archlinux.org/index.php/KVM)
@@ -606,7 +619,17 @@ Now you should have no issues with regards to the NVIDIA Error 43. Later on, we 
         - [Windows 10 Virtual Machine Benchmarks](https://heiko-sieger.info/windows-10-virtual-machine-benchmarks/)
         - [Windows 10 Benchmarks (Virtual Machine)](https://heiko-sieger.info/benchmarks/)
 - Lectures
-    - [Alex Williamson - An Introduction to PCI Device Assignment with VFIO](https://www.youtube.com/watch?v=WFkdTFTOTpA&feature=emb_title)
+    - Alex Williamson - Red Hat
+        - [An Introduction to PCI Device Assignment with VFIO](https://www.youtube.com/watch?v=WFkdTFTOTpA&feature=emb_title)
+        - [VFIO Device Assignment Quirks, How to use Them and How to Avoid Them](https://www.youtube.com/watch?v=A9rV2_3yIOk&t=790s)
+    - Martin Polednik - Red Hat
+        - [Helping Users Maximize VM Performance](https://www.youtube.com/watch?v=_SlUlQRcnQg)
+    - Neo Jia & Kirti Wankhede - NVIDIA
+        - [vGPU on KVM - A VFIO Based Framework](https://www.youtube.com/watch?v=Xs0TJU_sIPc&t=164s)
+- Communities
+    - [Reddit /r/vfio](https://www.reddit.com/r/vfio)
+    - [Level1Techs](https://forum.level1techs.com/)
+    - [KVM Forum](https://www.youtube.com/channel/UCRCSQmAOh7yzgheq-emy1xA)
 
 <h2 name="footnotes">
     Footnotes
