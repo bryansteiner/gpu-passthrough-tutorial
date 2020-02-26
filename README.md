@@ -85,7 +85,7 @@ Also check that CPU virtualization is enabled:<br><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For Intel: `$ dmesg | grep VT-d` <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For AMD: `$ dmesg | grep AMD-Vi`
 
-Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd and these configuration files are often overwritten on updates, I will be using a tool called [kernelstub](https://github.com/pop-os/kernelstub).
+Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd and these configuration files are often overwritten on updates, I will be using a tool called [kernelstub](https://github.com/pop-os/kernelstub):
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For Intel: `$ sudo kernelstub --add-options "intel_iommu=on"`<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For AMD: `$ sudo kernelstub --add-options "amd_iommu=on"`
