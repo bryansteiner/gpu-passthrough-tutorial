@@ -568,38 +568,12 @@ Now you should have no issues with regards to the NVIDIA Error 43. Later on, we 
     CPU Pinning
 </h4>
 
-```
-If you haven't already tuned your VM xml config. Below are some useful attributes to modify.
-
-(x) Verify bios and chipset
-
-(x) Set total vcpu number
-
-(x) Set vcpu pinning attribute
-
-(x) Configure cpu topology
-
-(x) Set Emulator pin attribute
-
-(x) Set hugepages in memory backing attribute
-
-(x) Set memory allocation attribute
-
-Enable hyper-v enlightenments
-
-(x) Set nic driver attribute to virtio
-
-(x) Set pci passthrough for devices
-
-Remove unnecessary hardware
-```
 
 
 
 <h3 name="part5">
     Part 5: Benchmarks
 </h3>
-
 
 
 
