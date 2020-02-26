@@ -663,7 +663,7 @@ Now you should have no issues with regards to the NVIDIA Error 43. Later on, we 
     </li>
     <li name="footnote4">
         I specifically wanted my Linux host to be able to perform <a href="https://developer.nvidia.com/cuda-downloads">CUDA</a> work on the attached NVIDIA GPU. Just because my graphics card wasn't attached to a display didn't stop me from wanting to use <a href="https://developer.nvidia.com/cudnn">cuDNN</a> for ML/AI applications.
-        <a href="return4"><sup>&#x21ba;</sup></a>
+        <a href="#return4"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote5">
         Applying the ACS Override Patch <b>may compromise system security</b>. Check out <a href="https://www.reddit.com/r/VFIO/comments/bvif8d/official_reason_why_acs_override_patch_is_not_in/">this post</a> to see why the ACS patch will probably never make its way upstream to the mainline kernel.
