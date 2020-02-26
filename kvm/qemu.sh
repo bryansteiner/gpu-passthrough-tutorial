@@ -9,34 +9,6 @@ source "/etc/libvirt/hooks/kvm.conf"
 ## Check libvirtd is running
 [[ $(systemctl status libvirtd | grep running) ]] || systemctl start libvirtd && sleep 1 && LIBVIRTD=STOPPED
 
-function allocate_hugepages {
-    HUGEPAGES="$(($MEMORY/$(($(grep Hugepagesize /proc/meminfo | awk '{print $2}')/1024))))"
-    echo "Allocating hugepages..."
-    echo $HUGEPAGES > /proc/sys/vm/nr_hugepages
-    ALLOC_PAGES=$(cat /proc/sys/vm/nr_hugepages)
-
-    TRIES=0
-    while (( $ALLOC_PAGES != $HUGEPAGES && $TRIES < 1000 ))
-    do
-        echo 1 > /proc/sys/vm/compact_memory            ## defrag ram
-        echo $HUGEPAGES > /proc/sys/vm/nr_hugepages
-        ALLOC_PAGES=$(cat /proc/sys/vm/nr_hugepages)
-        echo "Succesfully allocated $ALLOC_PAGES / $HUGEPAGES"
-        let TRIES+=1
-    done
-
-    if [ "$ALLOC_PAGES" -ne "HUGEPAGES" ]
-    then
-        echo "Not able to allocate all hugepages. Reverting..."
-        echo 0 > /proc/sys/vm/nr_hugepages
-        exit 1
-    fi
-}
-
-function deallocate_hugepages {
-    echo 0 > /proc/sys/vm/nr_hugepages
-}
-
 function bind_vfio {
     ## Load vfio
     modprobe vfio
@@ -67,6 +39,48 @@ function unbind_vfio {
     modprobe -r vfio
 }
 
+function allocate_hugepages {
+    HUGEPAGES="$(($MEMORY/$(($(grep Hugepagesize /proc/meminfo | awk '{print $2}')/1024))))"
+    echo "Allocating hugepages..."
+    echo $HUGEPAGES > /proc/sys/vm/nr_hugepages
+    ALLOC_PAGES=$(cat /proc/sys/vm/nr_hugepages)
+
+    TRIES=0
+    while (( $ALLOC_PAGES != $HUGEPAGES && $TRIES < 1000 ))
+    do
+        echo 1 > /proc/sys/vm/compact_memory            ## defrag ram
+        echo $HUGEPAGES > /proc/sys/vm/nr_hugepages
+        ALLOC_PAGES=$(cat /proc/sys/vm/nr_hugepages)
+        echo "Succesfully allocated $ALLOC_PAGES / $HUGEPAGES"
+        let TRIES+=1
+    done
+
+    if [ "$ALLOC_PAGES" -ne "HUGEPAGES" ]
+    then
+        echo "Not able to allocate all hugepages. Reverting..."
+        echo 0 > /proc/sys/vm/nr_hugepages
+        exit 1
+    fi
+}
+
+function deallocate_hugepages {
+    echo 0 > /proc/sys/vm/nr_hugepages
+}
+
+function cpu_mode_performance {
+    ## Enable CPU governor performance mode
+    cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo "performance" > $file; done
+    cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+}
+
+function cpu_mode_ondemand {
+    ## Enable CPU governor on-demand mode
+    cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo "ondemand" > $file; done
+    cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+}
+
 ## Kill the display manager
 #systemctl stop display-manager.service
 
@@ -77,12 +91,14 @@ function unbind_vfio {
 
 bind_vfio
 allocate_hugepages
+cpu_mode_performance
 
 ## QEMU KVM
-# TODO
+## Insert QEMU commands here
 
 deallocate_hugepages
 unbind_vfio
+cpu_mode_ondemand
 
 ## Start the display manager
 #systemctl start display-manager.service
