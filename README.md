@@ -94,6 +94,7 @@ When planning my GPU-passthrough setup, I discovered that many tutorials at this
 
 Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. We'll want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following script:
 
+`iommu.sh`:
 ```
 #!/bin/bash
 for d in /sys/kernel/iommu_groups/*/devices/*; do
