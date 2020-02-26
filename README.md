@@ -78,17 +78,17 @@ $ sudo apt install libvirt-daemon-system libvirt-clients qemu-kvm qemu-utils vir
 
 Restart your machine and boot into BIOS. Enable a feature called `IOMMU`. You'll also need to enable CPU virtualization. For Intel processors, look for something called `VT-d`. For AMD, look for something called `AMD-Vi`. My system was unique and I had to enable a feature called `SVM Mode`. Save any changes and restart the machine.
 
-Once you've booted into the host, make sure that IOMMU is enabled:<br>
+Once you've booted into the host, make sure that IOMMU is enabled:
 `$ dmesg | grep IOMMU`
 
-Also check that CPU virtualization is enabled:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For Intel --> `$ dmesg | grep VT-d` <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For AMD --> `$ dmesg | grep AMD-Vi`
+Also check that CPU virtualization is enabled:<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For Intel: `$ dmesg | grep VT-d` <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For AMD: `$ dmesg | grep AMD-Vi`
 
 Now you're going to need to pass the hardware-enabled IOMMU functionality into the kernel as a [kernel parameter](https://wiki.archlinux.org/index.php/kernel_parameters). For our purposes, it makes the most sense to enable this feature at boot-time. Depending on your boot-loader (i.e. grub, systemd, rEFInd), you'll have to modify a specific configuration file. Since my machine uses systemd and these configuration files are often overwritten on updates, I will be using a tool called [kernelstub](https://github.com/pop-os/kernelstub).
 
-For Intel: `$ sudo kernelstub --add-options "intel_iommu=on"`<br/>
-For AMD: `$ sudo kernelstub --add-options "amd_iommu=on"`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For Intel: `$ sudo kernelstub --add-options "intel_iommu=on"`<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For AMD: `$ sudo kernelstub --add-options "amd_iommu=on"`
 
 When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the nvidia/amd drivers. The logic stems from the fact that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add a kernel parameter called `pci-stub` with the ID of your GPU to achieve this. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and subsequently reversing these actions when the VM stops (see Part 2). That way, whenever the VM isn't in use, the GPU is available to the host machine on its native drivers.<span name="return4"><sup>[4](#footnote4)</sup></span>
 
@@ -403,13 +403,13 @@ $ tree /etc/libvirt/hooks/
                 └── unbind_vfio.sh
 ```
 
-We've succesfully created libvirt hook scripts to dynamically bind the vfio drivers before the VM starts and unbind these drivers after the VM terminates. At the moment, we're done messing with libvirt hooks. We'll revisit this topic later on when we make performance tweaks to our VM (see Part 4).
+We've succesfully created libvirt hook scripts to dynamically bind the vfio drivers before the VM starts and unbind these drivers after the VM terminates. At the moment, we're done messing around with libvirt hooks. We'll revisit this topic later on when we make performance tweaks to our VM (see Part 4).
 
 <h3 name="part3">
     Part 3: Creating the VM
 </h3>
 
-We're ready to begin creating our VM. There are basically two options for how to achieve this: (1) If you prefer a GUI approach, then follow the rest of this tutorial. (2) If you prefer bash scripts, take a look at YuriAlek's series of [GPU-passthrough scripts](https://gitlab.com/YuriAlek/vfio) and customize them to fit your needs. The main difference between these two methods lies with the fact that the scripting approach uses [bare QEMU](https://manpages.debian.org/stretch/qemu-system-x86/qemu-system-x86_64.1.en.html) CLI commands, while the GUI approach uses [virt-manager](https://virt-manager.org/). Virt-manager essentially builds on-top of the QEMU base-layer and adds other features + complexity.<span name="return9"><sup>[9](#footnote9)</sup></span>
+We're ready to begin creating our VM. There are basically two options for how to achieve this: **(1)** If you prefer a GUI approach, then follow the rest of this tutorial. **(2)** If you prefer bash scripts, take a look at YuriAlek's series of [GPU-passthrough scripts](https://gitlab.com/YuriAlek/vfio) and customize them to fit your needs. The main difference between these two methods lies with the fact that the scripting approach uses [bare QEMU](https://www.mankier.com/1/qemu) commands<span name="return9"><sup>[9](#footnote9)</sup></span>, while the GUI approach uses [virt-manager](https://virt-manager.org/). Virt-manager essentially builds on-top of the QEMU base-layer and adds other features/complexity.<span name="return10"><sup>[10](#footnote10)</sup></span>
 
 Go ahead and start virt-manager from your list of applications. Select the button on the top left of the GUI to create a new VM:
 
@@ -495,7 +495,7 @@ Then under the 'Boot Options' menu, I added a check next to `Enable boot menu` a
     <img src="./img/virtman_14.png" width="450">
 </div><br>
 
-You can now go ahead and select the USB Host Devices you'd like to passthrough to your guest VM (usually a keyboard, mouse, etc.). Please note that these devices will be held by the guest VM from the moment it's created until its stopped and will be unavailable to the host.<span name="return10"><sup>[10](#footnote10)</sup></span>
+You can now go ahead and select the USB Host Devices you'd like to passthrough to your guest VM (usually a keyboard, mouse, etc.). Please note that these devices will be held by the guest VM from the moment it's created until its stopped and will be unavailable to the host.<span name="return11"><sup>[11](#footnote11)</sup></span>
 
 <div align="center">
     <img src="./img/virtman_15.png" width="450">
@@ -682,11 +682,15 @@ Now you should have no issues with regards to the NVIDIA Error 43. Later on, we 
         <a href="#return8"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote9">
-        See <a href="https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/">this link</a> for more details and a comparison between QEMU and virt-manager.
+        If you decide to use bash scripts to launch your VM, I've included a file in the repository called <code>qemu.sh</code>. Make sure to fill out the <code>#TODO</code> section of the code with your custom version of the command <code>qemu-system-x86-64</code>.
         <a href="#return9"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote10">
-        See <a href="https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough/#About_keyboard_and_mouse">this link</a> for software/hardware solutions that share your keyboard and mouse across your host and guest.
+        See <a href="https://www.stratoscale.com/blog/compute/using-bare-qemu-kvm-vs-libvirt-virt-install-virt-manager/">this link</a> for more details and a comparison between QEMU and virt-manager.
         <a href="#return10"><sup>&#x21ba;</sup></a>
+    </li>
+    <li name="footnote11">
+        See <a href="https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough/#About_keyboard_and_mouse">this link</a> for software/hardware solutions that share your keyboard and mouse across your host and guest.
+        <a href="#return11"><sup>&#x21ba;</sup></a>
     </li>
 </ol>

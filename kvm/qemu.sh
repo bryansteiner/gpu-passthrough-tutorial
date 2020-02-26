@@ -94,7 +94,7 @@ allocate_hugepages
 cpu_mode_performance
 
 ## QEMU KVM
-## Insert QEMU commands here
+#TODO
 
 deallocate_hugepages
 unbind_vfio
