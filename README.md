@@ -19,7 +19,7 @@
     Introduction
 </h2>
 
-In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a guest VM running Windows 10. I am also running the Linux kernel version 5.4.0.
+In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) and a guest VM running Windows 10. I am also running Linux kernel version 5.4.0.
 
 <div align="center">
     <img src="./img/kvm-architecture.jpg" width="500">
