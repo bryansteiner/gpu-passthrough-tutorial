@@ -138,8 +138,8 @@ IOMMU Group 32 0d:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/AT
 
 If your setup is like mine<sup>[7](#footnote7)</sup> and you had isolated IOMMU groups, feel free to skip the following section. Otherwise, please continue reading...
 
-<h4>
-    ACS Override Patch [Optional]:
+<h4 name="part 1.1">
+    ACS Override Patch (Optional):
 </h4>
 
 For most linux distributions, the ACS Override Patch requires you to download the kernel source code, manually insert the ACS patch, compile + install the kernel, and then boot directly from the newly patched kernel.<sup>[8](#footnote8)</sup>
@@ -261,8 +261,8 @@ IOMMU Group 16 02:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/AT
 ...
 ```
 
-<h4>
-    Download the ISO files [Mandatory]:
+<h4 name="part1.2">
+    Download ISO files (Mandatory):
 </h4>
 
 Since we're building a Windows VM, we're going to need to download and use the virtIO drivers. [virtIO](https://www.linux-kvm.org/page/Virtio) is a virtualization standard for network and disk device drivers. Adding the virtIO drivers can be done by attaching its relevant ISO to the Windows VM during creation. Fedora provides the virtIO drivers for [direct download](https://docs.fedoraproject.org/en-US/quick-docs/creating-windows-virtual-machines-using-virtio-drivers/#virtio-win-direct-downloads).
@@ -318,14 +318,8 @@ $ tree /etc/libvirt/hooks/
     └── win10
         ├── prepare
         │   └── begin
-        ├── release
-        │   └── end
-        ├── start
-        │   └── begin
-        ├── started
-        │   └── begin
-        └── stopped
-            └── end
+        └── release
+            └── end
 ```
 
 It's time to get our hands dirty... Create a file named `kvm.conf` and place it under `/etc/libvirt/hooks/`. Add the following entries to the file:
@@ -404,15 +398,9 @@ $ tree /etc/libvirt/hooks/
         ├── prepare
         │   └── begin
         │       └── bind_vfio.sh
-        ├── release
-        │   └── end
-        │       └── unbind_vfio.sh
-        ├── start
-        │   └── begin
-        ├── started
-        │   └── begin
-        └── stopped
-            └── end
+        └── release
+            └── end
+                └── unbind_vfio.sh
 ```
 
 We've succesfully created libvirt hook scripts to dynamically bind the vfio drivers before the VM starts and unbind these drivers after the VM terminates. At the moment, we're done messing with libvirt hooks. We'll revisit this topic later on when we make performance tweaks to our VM (see Part 4).
@@ -564,7 +552,47 @@ Now you should have no issues with regards to the NVIDIA Error 43. Later on, we 
     Part 4: Improving VM Performance
 </h3>
 
+<h4>
+    Hyper-V Enlightenments
+</h4>
 
+<h4>
+    Hugepages
+</h4>
+
+<h4>
+    CPU Governor Settings
+</h4>
+
+<h4>
+    CPU Pinning
+</h4>
+
+```
+If you haven't already tuned your VM xml config. Below are some useful attributes to modify.
+
+(x) Verify bios and chipset
+
+(x) Set total vcpu number
+
+(x) Set vcpu pinning attribute
+
+(x) Configure cpu topology
+
+(x) Set Emulator pin attribute
+
+(x) Set hugepages in memory backing attribute
+
+(x) Set memory allocation attribute
+
+Enable hyper-v enlightenments
+
+(x) Set nic driver attribute to virtio
+
+(x) Set pci passthrough for devices
+
+Remove unnecessary hardware
+```
 
 
 
@@ -581,41 +609,52 @@ Now you should have no issues with regards to the NVIDIA Error 43. Later on, we 
 </h2>
 
 - Docs
-    - [Linux Kernel](https://www.kernel.org/doc/html/latest/)
+    - Linux Kernel
         - [KVM](https://www.kernel.org/doc/html/latest/virt/kvm/index.html)
         - [VFIO](https://www.kernel.org/doc/html/latest/driver-api/vfio.html?highlight=vfio%20pci)
-    - [ArchWiki](https://wiki.archlinux.org/)
+    - ArchWiki
         - [QEMU](https://wiki.archlinux.org/index.php/QEMU)
         - [KVM](https://wiki.archlinux.org/index.php/KVM)
         - [Libvirt](https://wiki.archlinux.org/index.php/Libvirt)
         - [PCI Passthrough](https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF)
-    - [Libvirt Wiki](https://wiki.libvirt.org/page/Main_Page)
+    - Libvirt Wiki
         - [virtIO](https://wiki.libvirt.org/page/Virtio)
         - [Hooks](https://libvirt.org/hooks.html)
         - [Domain XML](https://libvirt.org/formatdomain.html)
 - Tutorials
-    - [Heiko Sieger - Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
+    - Heiko Sieger - [Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
     - Alex Williamson - VFIO GPU How To series
         - [Part 1 - The hardware](https://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-1-hardware.html)
         - [Part 2 - Expectations](https://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-2.html)
         - [Part 3 - Host configuration](https://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-3-host.html)
         - [Part 4 - Our first VM](https://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-4-our-first.html)
         - [Part 5 - A VGA-mode, SeaBIOS VM](https://vfio.blogspot.com/2015/05/vfio-gpu-how-to-series-part-5-vga-mode.html)
-    - [David Yates - GPU passthrough: gaming on Windows on Linux](https://davidyat.es/2016/09/08/gpu-passthrough/)
-    - [Wendell - VFIO in 2019 – Pop!_OS How-To](https://forum.level1techs.com/t/vfio-in-2019-pop-os-how-to-general-guide-though-draft/142287)
-        - FYI: Wendell is from [Level1Techs](https://level1techs.com/). He has contributed to the FOSS community with a cool application called [Looking Glass](https://looking-glass.hostfission.com/). I recommend you check out this [video](https://www.youtube.com/watch?v=okMGtwfiXMo) for more information.
-        - Wendell has even collaborated with Linus from "Linus Tech Tips" and put out this great [video](https://www.youtube.com/watch?v=SsgI1mkx6iw).
-    - [Yuri Alek - Single GPU passthrough](https://gitlab.com/YuriAlek/vfio)
-    - [bsilvereagle - Virtualizing Windows 7 (or Linux) on a NVMe drive with VFIO](https://frdmtoplay.com/virtualizing-windows-7-or-linux-on-a-nvme-drive-with-vfio/)
-    - [GrayWolfTech - Play games in Windows on Linux! PCI passthrough quick guide](https://www.youtube.com/watch?v=dsDUtzMkxFk)
+    - David Yates - [GPU passthrough: gaming on Windows on Linux](https://davidyat.es/2016/09/08/gpu-passthrough/)
+    - Wendell - [VFIO in 2019 – Pop!_OS How-To](https://forum.level1techs.com/t/vfio-in-2019-pop-os-how-to-general-guide-though-draft/142287)
+        - Wendell is from [Level1Techs](https://level1techs.com/). He has contributed to the FOSS community with a cool application called [Looking Glass](https://looking-glass.hostfission.com/). I recommend you check out this [video](https://www.youtube.com/watch?v=okMGtwfiXMo) for more information.
+        - Wendell has even collaborated with Linus from [Linus Tech Tips](https://www.youtube.com/user/LinusTechTips) and put out [this video](https://www.youtube.com/watch?v=SsgI1mkx6iw).
+    - Yuri Alek - [Single GPU passthrough](https://gitlab.com/YuriAlek/vfio)
+    - Jack Ford - [Ubuntu 18.04 - KVM/QEMU Windows 10 GPU Passthrough](https://blog.zerosector.io/2018/07/28/kvm-qemu-windows-10-gpu-passthrough/)
+    - Bsilvereagle - [Virtualizing Windows 7 (or Linux) on a NVMe drive with VFIO](https://frdmtoplay.com/virtualizing-windows-7-or-linux-on-a-nvme-drive-with-vfio/)
+    - Mathias Hauber
+        - [Windows virtual machine GPU passthrough Ubuntu](https://mathiashueber.com/windows-virtual-machine-gpu-passthrough-ubuntu/)
+        - [Performance tweaks gaming on virtual machines](https://mathiashueber.com/performance-tweaks-gaming-on-virtual-machines/)
+        - [Configuring Hugepages to use in a virtual machine](https://mathiashueber.com/configuring-hugepages-use-virtual-machine/)
+        - [QEMU Troubleshooting errors-gpu-passthrough-vm](https://mathiashueber.com/qemu-troubleshooting-errors-gpu-passthrough-vm/)
+    - Rokas Kupstys - [Performance of your gaming VM](https://rokups.github.io/#!pages/gaming-vm-performance.md)
+- Videos
+    - GrayWolfTech - [Play games in Windows on Linux! PCI passthrough quick guide](https://www.youtube.com/watch?v=dsDUtzMkxFk)
+    - Raven Repair Co. - [How to create a KVM gaming virtual machine in under 30 minutes!](https://www.youtube.com/watch?v=HXgQVAl4JB4&list=PLoQO63DBLOOM1zf4Fm2HG3QhzlJK7PTAI)
+    - Level1Linux - [GPU Passthrough for Virtualization with Ryzen: Now Working](https://www.youtube.com/watch?v=aLeWg11ZBn0&t=1595s)
 - Blogs
-    - [The Passthrough Post](https://passthroughpo.st/)
+    - The Passthrough Post
         - [VFIO PC Builds](https://passthroughpo.st/vfio-increments/)
         - [Howto: Libvirt Automation Using VFIO-Tools Hook Helper](https://passthroughpo.st/simple-per-vm-libvirt-hooks-with-the-vfio-tools-hook-helper/)
         - [How to Apply the Error 43 Workaround](https://passthroughpo.st/apply-error-43-workaround/)
-    - [Heiko Sieger](https://heiko-sieger.info/)
+    - Heiko Sieger
         - [Glossary of Virtualization Terms](https://heiko-sieger.info/glossary-of-virtualization-terms/)
         - [IOMMU Groups – What You Need to Consider](https://heiko-sieger.info/iommu-groups-what-you-need-to-consider/)
+        - [Virtualization Hardware Accessories](https://heiko-sieger.info/virtualization-hardware-accessories/)
         - [Windows 10 Virtual Machine Benchmarks](https://heiko-sieger.info/windows-10-virtual-machine-benchmarks/)
         - [Windows 10 Benchmarks (Virtual Machine)](https://heiko-sieger.info/benchmarks/)
 - Lectures
