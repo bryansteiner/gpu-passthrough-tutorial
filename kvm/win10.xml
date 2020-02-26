@@ -1,6 +1,6 @@
 <domain type="kvm">
   <name>win10</name>
-  <uuid>35ab40b3-f860-4371-aa97-bb34055ecd14</uuid>
+  <uuid>a8019fe2-d340-4f1e-8fab-7f2faf8005ce</uuid>
   <metadata>
     <libosinfo:libosinfo xmlns:libosinfo="http://libosinfo.org/xmlns/libvirt/domain/1.0">
       <libosinfo:os id="http://microsoft.com/win/10"/>
@@ -8,23 +8,24 @@
   </metadata>
   <memory unit="KiB">16777216</memory>
   <currentMemory unit="KiB">16777216</currentMemory>
-  <!--added-->
   <memoryBacking>
     <hugepages/>
   </memoryBacking>
-  <!--modified-->
-  <vcpu placement="static">8</vcpu>
-  <!--added-->
+  <vcpu placement="static">12</vcpu>
   <cputune>
-    <vcpupin vcpu="0" cpuset="2"/>
-    <vcpupin vcpu="1" cpuset="8"/>
-    <vcpupin vcpu="2" cpuset="3"/>
-    <vcpupin vcpu="3" cpuset="9"/>
-    <vcpupin vcpu="4" cpuset="4"/>
-    <vcpupin vcpu="5" cpuset="10"/>
-    <vcpupin vcpu="6" cpuset="5"/>
-    <vcpupin vcpu="7" cpuset="11"/>
-    <emulatorpin cpuset="0-1,6-7"/>
+    <vcpupin vcpu="0" cpuset="6"/>
+    <vcpupin vcpu="1" cpuset="18"/>
+    <vcpupin vcpu="2" cpuset="7"/>
+    <vcpupin vcpu="3" cpuset="19"/>
+    <vcpupin vcpu="4" cpuset="8"/>
+    <vcpupin vcpu="5" cpuset="20"/>
+    <vcpupin vcpu="6" cpuset="9"/>
+    <vcpupin vcpu="7" cpuset="21"/>
+    <vcpupin vcpu="8" cpuset="10"/>
+    <vcpupin vcpu="9" cpuset="22"/>
+    <vcpupin vcpu="10" cpuset="11"/>
+    <vcpupin vcpu="11" cpuset="23"/>
+    <emulatorpin cpuset="0-5,12-17"/>
   </cputune>
   <os>
     <type arch="x86_64" machine="pc-q35-4.0">hvm</type>
@@ -40,18 +41,22 @@
       <vapic state="on"/>
       <spinlocks state="on" retries="8191"/>
       <vendor_id state="on" value="kvm hyperv"/>
+      <vpindex state='on'/>
+      <synic state='on'/>
+      <stimer state='on'/>
+      <reset state='on'/>
+      <frequencies state='on'/>
     </hyperv>
-    <!--added-->
     <kvm>
       <hidden state="on"/>
     </kvm>
     <vmport state="off"/>
-    <!--added-->
     <ioapic driver="kvm"/>
   </features>
-  <!--modified-->
   <cpu mode="host-passthrough" check="none">
-    <topology sockets="1" cores="4" threads="2"/>
+    <topology sockets="1" cores="6" threads="2"/>
+    <cache mode='passthrough'/>
+    <feature policy='require' name='topoext'/>
   </cpu>
   <clock offset="localtime">
     <timer name="rtc" tickpolicy="catchup"/>
@@ -73,6 +78,7 @@
       <source file="/home/bsteiner/.iso/Win10_1909_English_x64.iso"/>
       <target dev="sda" bus="sata"/>
       <readonly/>
+      <boot order="2"/>
       <address type="drive" controller="0" bus="0" target="0" unit="0"/>
     </disk>
     <disk type="file" device="cdrom">
@@ -80,6 +86,7 @@
       <source file="/home/bsteiner/.iso/virtio-win-0.1.173.iso"/>
       <target dev="sdb" bus="sata"/>
       <readonly/>
+      <boot order="3"/>
       <address type="drive" controller="0" bus="0" target="0" unit="1"/>
     </disk>
     <controller type="usb" index="0" model="qemu-xhci" ports="15">
@@ -132,81 +139,79 @@
     <controller type="pci" index="9" model="pcie-root-port">
       <model name="pcie-root-port"/>
       <target chassis="9" port="0x10"/>
-      <address type="pci" domain="0x0000" bus="0x00" slot="0x02" function="0x0"/>
+      <address type="pci" domain="0x0000" bus="0x00" slot="0x02" function="0x0" multifunction="on"/>
+    </controller>
+    <controller type="pci" index="10" model="pcie-root-port">
+      <model name="pcie-root-port"/>
+      <target chassis="10" port="0x11"/>
+      <address type="pci" domain="0x0000" bus="0x00" slot="0x02" function="0x1"/>
+    </controller>
+    <controller type="pci" index="11" model="pcie-root-port">
+      <model name="pcie-root-port"/>
+      <target chassis="11" port="0x12"/>
+      <address type="pci" domain="0x0000" bus="0x00" slot="0x02" function="0x2"/>
+    </controller>
+    <controller type="pci" index="12" model="pcie-root-port">
+      <model name="pcie-root-port"/>
+      <target chassis="12" port="0x13"/>
+      <address type="pci" domain="0x0000" bus="0x00" slot="0x02" function="0x3"/>
     </controller>
     <interface type="network">
-      <mac address="52:54:00:2f:71:8e"/>
+      <mac address="52:54:00:73:81:6d"/>
       <source network="default"/>
-      <model type="e1000e"/>
+      <model type="virtio"/>
       <address type="pci" domain="0x0000" bus="0x01" slot="0x00" function="0x0"/>
     </interface>
     <input type="mouse" bus="ps2"/>
     <input type="keyboard" bus="ps2"/>
     <hostdev mode="subsystem" type="pci" managed="yes">
       <source>
-        <address domain="0x0000" bus="0x08" slot="0x00" function="0x0"/>
+        <address domain="0x0000" bus="0x0a" slot="0x00" function="0x0"/>
       </source>
-      <boot order="1"/>
       <address type="pci" domain="0x0000" bus="0x03" slot="0x00" function="0x0"/>
     </hostdev>
     <hostdev mode="subsystem" type="pci" managed="yes">
       <source>
-        <address domain="0x0000" bus="0x01" slot="0x00" function="0x0"/>
+        <address domain="0x0000" bus="0x0a" slot="0x00" function="0x1"/>
       </source>
       <address type="pci" domain="0x0000" bus="0x04" slot="0x00" function="0x0"/>
     </hostdev>
     <hostdev mode="subsystem" type="pci" managed="yes">
       <source>
-        <address domain="0x0000" bus="0x01" slot="0x00" function="0x1"/>
+        <address domain="0x0000" bus="0x0a" slot="0x00" function="0x2"/>
       </source>
       <address type="pci" domain="0x0000" bus="0x05" slot="0x00" function="0x0"/>
     </hostdev>
     <hostdev mode="subsystem" type="pci" managed="yes">
       <source>
-        <address domain="0x0000" bus="0x01" slot="0x00" function="0x2"/>
+        <address domain="0x0000" bus="0x0a" slot="0x00" function="0x3"/>
       </source>
       <address type="pci" domain="0x0000" bus="0x06" slot="0x00" function="0x0"/>
     </hostdev>
     <hostdev mode="subsystem" type="pci" managed="yes">
       <source>
-        <address domain="0x0000" bus="0x01" slot="0x00" function="0x3"/>
+        <address domain="0x0000" bus="0x04" slot="0x00" function="0x0"/>
       </source>
+      <boot order="1"/>
       <address type="pci" domain="0x0000" bus="0x07" slot="0x00" function="0x0"/>
     </hostdev>
-    <hostdev mode="subsystem" type="usb" managed="yes">
+    <hostdev mode="subsystem" type="pci" managed="yes">
       <source>
-        <vendor id="0x046d"/>
-        <product id="0xc539"/>
+        <address domain="0x0000" bus="0x07" slot="0x00" function="0x0"/>
       </source>
-      <address type="usb" bus="0" port="1"/>
+      <address type="pci" domain="0x0000" bus="0x0a" slot="0x00" function="0x0"/>
     </hostdev>
-    <hostdev mode="subsystem" type="usb" managed="yes">
+    <hostdev mode="subsystem" type="pci" managed="yes">
       <source>
-        <vendor id="0x2516"/>
-        <product id="0x008f"/>
+        <address domain="0x0000" bus="0x07" slot="0x00" function="0x1"/>
       </source>
-      <address type="usb" bus="0" port="2"/>
+      <address type="pci" domain="0x0000" bus="0x0b" slot="0x00" function="0x0"/>
     </hostdev>
-    <hostdev mode="subsystem" type="usb" managed="yes">
+    <hostdev mode="subsystem" type="pci" managed="yes">
       <source>
-        <vendor id="0x046d"/>
-        <product id="0x085c"/>
+        <address domain="0x0000" bus="0x07" slot="0x00" function="0x3"/>
       </source>
-      <address type="usb" bus="0" port="5"/>
-    </hostdev>
-    <hostdev mode="subsystem" type="usb" managed="yes">
-      <source>
-        <vendor id="0x1e71"/>
-        <product id="0x170e"/>
-      </source>
-      <address type="usb" bus="0" port="3"/>
-    </hostdev>
-    <hostdev mode="subsystem" type="usb" managed="yes">
-      <source>
-        <vendor id="0x1e71"/>
-        <product id="0x1714"/>
-      </source>
-      <address type="usb" bus="0" port="4"/>
+      <address type="pci" domain="0x0000" bus="0x0c" slot="0x00" function="0x0"/>
     </hostdev>
     <memballoon model="virtio">
       <address type="pci" domain="0x0000" bus="0x08" slot="0x00" function="0x0"/>
