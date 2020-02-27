@@ -687,7 +687,7 @@ cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
     CPU Pinning
 </h4>
 
-This performance tweak applies *only* to those of you whose processors are [multithreaded](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture). My setup has an AMD Ryzen 3900X which has 12 physical cores and 24 threads (logical cores).
+This performance tweak applies *only* to those of you whose processors are [multithreaded](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)). My setup has an AMD Ryzen 3900X which has 12 physical cores and 24 threads (logical cores).
 
 VMs are unable to distinguish between these physical and logical cores. From the guest's perspective, virt-manager sees that there are 24 virtual CPUs (vcpu) available. From the host's perspective however, two virtual cores map to a physical core on the CPU die.
 
