@@ -699,7 +699,7 @@ If you're more of a visual learner, perhaps this diagram of an AMD Ryzen 1800X (
     <img src="./img/cpu_architecture.png" width="300">
 </div><br>
 
-It's time to edit the XML configuration of our VM. I've added the following lines (yours should be customized for your processor):
+It's time to edit the XML configuration of our VM. I've added the following lines of code (custom for every processor):
 
 ```
 <vcpu placement="static">12</vcpu>
@@ -726,21 +726,50 @@ It's time to edit the XML configuration of our VM. I've added the following line
 </cputune>
 ```
 
+In addition, edit the `cpu` block to define the cpu topography. In my case, my processor has 1 socket with 6 physical cores and 2 threads per core:
+
+```
+<cpu mode="host-passthrough" check="none">
+  <topology sockets="1" cores="6" threads="2"/>
+  <cache mode='passthrough'/>
+  <feature policy='require' name='topoext'/>
+</cpu>
+```
+
 <h4>
     Hyper-V Enlightenments
 </h4>
+
+Hyper-V enlightenments help the guest VM handle virtualization tasks. [Libvirt](https://libvirt.org/formatdomain.html#elementsFeatures) has a detailed breakdown of these features. I've chosen to go with the set of features recommended in [this tutorial](https://mathiashueber.com/performance-tweaks-gaming-on-virtual-machines/) due to hardware similarities:
+
+```
+<features>
+    ...
+    <hyperv>
+      <relaxed state="on"/>
+      <vapic state="on"/>
+      <spinlocks state="on" retries="8191"/>
+      <vendor_id state="on" value="kvm hyperv"/>
+      <vpindex state='on'/>
+      <synic state='on'/>
+      <stimer state='on'/>
+      <reset state='on'/>
+      <frequencies state='on'/>
+    </hyperv>
+    ...
+</features>
+```
 
 <h4>
     QEMU Guest Agent
 </h4>
 
+This last tweak isn't strictly a performance improvement but it's an important feature overlooked in other tutorials. The [QEMU guest agent](https://wiki.libvirt.org/page/Qemu_guest_agent)
+
 
 <h3 name="part5">
     Part 5: Benchmarks
 </h3>
-
-
-
 
 <h2 name="credits">
     Credits & Resources
@@ -759,6 +788,7 @@ It's time to edit the XML configuration of our VM. I've added the following line
         - [virtIO](https://wiki.libvirt.org/page/Virtio)
         - [Hooks](https://libvirt.org/hooks.html)
         - [Domain XML](https://libvirt.org/formatdomain.html)
+        - [QEMU Guest Agent](https://wiki.libvirt.org/page/Qemu_guest_agent)
 - Tutorials
     - Heiko Sieger - [Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
     - Alex Williamson - VFIO GPU How To series
