@@ -404,7 +404,7 @@ $ tree /etc/libvirt/hooks/
                 └── unbind_vfio.sh
 ```
 
-We've succesfully created libvirt hook scripts to dynamically bind the vfio drivers before the VM starts and unbind these drivers after the VM terminates. At the moment, we're done messing around with libvirt hooks. We'll revisit this topic later on when we make performance tweaks to our VM (see Part 4).
+We've succesfully created libvirt hook scripts to dynamically bind the vfio drivers before the VM starts and unbind these drivers after the VM terminates. At the moment, we're done messing around with libvirt hooks. We'll revisit this topic later on when we make performance tweaks to our VM ([see Part 4](#part4)).
 
 <h3 name="part3">
     Part 3: Creating the VM
@@ -553,23 +553,186 @@ Now you should have no issues with regards to the NVIDIA Error 43. Later on, we 
     Part 4: Improving VM Performance
 </h3>
 
-<h4>
-    Hyper-V Enlightenments
-</h4>
+None of the following performance optimizations are necessary to get a working GPU passthrough system. However, these tweaks will make a difference if you're at all concerned about reaching buttery-smooth gaming performance. Though some of these changes are more difficult than others, I highly advise you to at least consider them.
 
 <h4>
     Hugepages
 </h4>
 
+Memory (RAM) is divided up into basic segments called *pages*. By default, the x86 architecture has a page size of 4KB. CPUs utilize pages within a built in memory management unit (MMU). Although the standard page size is suitable for many tasks, *hugepages* are a mechanism that allow the Linux kernel to take advantage of large amounts of memory with reduced overhead. Hugepages can vary in size anywhere from 2MB to 1GB. Hugepages are enabled by default but if they aren't, make sure to download the package: `$ sudo apt install hugepages`.<span name="return12"><sup>[12](#footnote12)</sup></span>
+
+Go back to your VM's XML settings by either using the virt-man GUI or the command: `$ sudo virsh edit {vm-name}`. Insert the `memoryBacking` lines so that your configuration looks like this:
+
+```
+<memory unit="KiB">16777216</memory>
+<currentMemory unit="KiB">16777216</currentMemory>
+<memoryBacking>
+    <hugepages/>
+</memoryBacking>
+```
+
+Many tutorials will have you reserve hugepages for your guest VM at host boot-time. There's a significant downside to this approach: a portion of RAM will be unavailable to your host even when the VM is inactive. In my setup, I've chose to allocate hugepages before the VM starts and deallocate those pages on VM shutdown through the use of two additional executable scripts<span name="return13"><sup>[13](#footnote13)</sup></span> inside libvirt hooks ([see Part 2](#part2)):
+
+```
+$ tree /etc/libvirt/hooks/
+/etc/libvirt/hooks/
+├── kvm.conf
+├── qemu
+└── qemu.d
+    └── win10
+        ├── prepare
+        │   └── begin
+        │       ├── ...
+        │       └── alloc_hugepages.sh
+        └── release
+            └── end
+                ├── ...
+                └── dealloc_hugepages.sh
+```
+
+`alloc_hugepages.sh`:
+```
+#!/bin/bash
+
+## Load the config file
+source "/etc/libvirt/hooks/kvm.conf"
+
+## Calculate number of hugepages to allocate from memory (in MB)
+HUGEPAGES="$(($MEMORY/$(($(grep Hugepagesize /proc/meminfo | awk '{print $2}')/1024))))"
+
+echo "Allocating hugepages..."
+echo $HUGEPAGES > /proc/sys/vm/nr_hugepages
+ALLOC_PAGES=$(cat /proc/sys/vm/nr_hugepages)
+
+TRIES=0
+while (( $ALLOC_PAGES != $HUGEPAGES && $TRIES < 1000 ))
+do
+    echo 1 > /proc/sys/vm/compact_memory            ## defrag ram
+    echo $HUGEPAGES > /proc/sys/vm/nr_hugepages
+    ALLOC_PAGES=$(cat /proc/sys/vm/nr_hugepages)
+    echo "Succesfully allocated $ALLOC_PAGES / $HUGEPAGES"
+    let TRIES+=1
+done
+
+if [ "$ALLOC_PAGES" -ne "$HUGEPAGES" ]
+then
+    echo "Not able to allocate all hugepages. Reverting..."
+    echo 0 > /proc/sys/vm/nr_hugepages
+    exit 1
+fi
+
+```
+
+`dealloc_hugepages.sh`
+```
+#!/bin/bash
+
+## Load the config file
+source "/etc/libvirt/hooks/kvm.conf"
+
+echo 0 > /proc/sys/vm/nr_hugepages
+```
+
 <h4>
     CPU Governor Settings
 </h4>
+
+This performance tweak<span name="return14"><sup>[14](#footnote14)</sup></span> takes advantage of the [CPU scaling governor](https://wiki.archlinux.org/index.php/CPU_frequency_scaling) in Linux. It's a feature that is often ofterlooked in many passthrough tutorials, but we include it here because its recommended. Once again, we'll be utilizing libvirt's hook system ([see Part 2](#part2)):
+
+```
+$ tree /etc/libvirt/hooks/
+/etc/libvirt/hooks/
+├── kvm.conf
+├── qemu
+└── qemu.d
+    └── win10
+        ├── prepare
+        │   └── begin
+        │       ├── ...
+        │       └── cpu_mode_performance.sh
+        └── release
+            └── end
+                ├── ...
+                └── cpu_mode_ondemand.sh
+```
+
+`cpu_mode_performance.sh`:
+```
+#!/bin/bash
+
+## Load the config file
+source "/etc/libvirt/hooks/kvm.conf"
+
+## Enable CPU governor performance mode
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo "performance" > $file; done
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+
+```
+
+`cpu_mode_ondemand.sh`:
+```
+#!/bin/bash
+
+## Load the config file
+source "/etc/libvirt/hooks/kvm.conf"
+
+## Enable CPU governor on-demand mode
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo "ondemand" > $file; done
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+```
 
 <h4>
     CPU Pinning
 </h4>
 
+This performance tweak applies *only* to those of you whose processors are [multithreaded](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture). My setup has an AMD Ryzen 3900X which has 12 physical cores and 24 threads (logical cores).
 
+VMs are unable to distinguish between these physical and logical cores. From the guest's perspective, virt-manager sees that there are 24 virtual CPUs (vcpu) available. From the host's perspective however, two virtual cores map to a physical core on the CPU die.
+
+It's **very important** that when we passthrough a core, we include its sibling. To get a sense which cores are siblings just do `$ cat /proc/cpuinfo | grep "core id"`. A matching core id means the associated threads run in the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
+
+If you're more of a visual learner, perhaps this diagram of an AMD Ryzen 1800X (8 cores, 16 threads) will help you visualize what's going on. I highly recommend you check out [Mathias Hauber's tutorial](https://mathiashueber.com/performance-tweaks-gaming-on-virtual-machines/) which is the source of this image:
+
+<div align="center">
+    <img src="./img/cpu_architecture.png" width="300">
+</div><br>
+
+It's time to edit the XML configuration of our VM. I've added the following lines (yours should be customized for your processor):
+
+```
+<vcpu placement="static">12</vcpu>
+<iothreads>5</iothreads>
+<cputune>
+    <vcpupin vcpu="0" cpuset="6"/>
+    <vcpupin vcpu="1" cpuset="18"/>
+    <vcpupin vcpu="2" cpuset="7"/>
+    <vcpupin vcpu="3" cpuset="19"/>
+    <vcpupin vcpu="4" cpuset="8"/>
+    <vcpupin vcpu="5" cpuset="20"/>
+    <vcpupin vcpu="6" cpuset="9"/>
+    <vcpupin vcpu="7" cpuset="21"/>
+    <vcpupin vcpu="8" cpuset="10"/>
+    <vcpupin vcpu="9" cpuset="22"/>
+    <vcpupin vcpu="10" cpuset="11"/>
+    <vcpupin vcpu="11" cpuset="23"/>
+    <emulatorpin cpuset="0-1"/>
+    <iothreadpin iothread='1' cpuset='2-3'/>
+    <iothreadpin iothread='2' cpuset='4-5'/>
+    <iothreadpin iothread='3' cpuset='12-13'/>
+    <iothreadpin iothread='4' cpuset='14-15'/>
+    <iothreadpin iothread='5' cpuset='16-17'/>
+</cputune>
+```
+
+<h4>
+    Hyper-V Enlightenments
+</h4>
+
+<h4>
+    QEMU Guest Agent
+</h4>
 
 
 <h3 name="part5">
@@ -694,4 +857,21 @@ Now you should have no issues with regards to the NVIDIA Error 43. Later on, we 
         See <a href="https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough/#About_keyboard_and_mouse">this link</a> for software/hardware solutions that share your keyboard and mouse across your host and guest.
         <a href="#return11"><sup>&#x21ba;</sup></a>
     </li>
+    <li name="footnote12">
+        For more information on hugepages, refer to <a href="https://help.ubuntu.com/community/KVM%20-%20Using%20Hugepages">this link.
+        <a href="#return12"><sup>&#x21ba;</sup></a>
+    </li>
+    <li name="footnote13">
+        Credit to the comment from /u/tholin in <a href="https://www.reddit.com/r/VFIO/comments/dmie86/setting_up_hugepages/">this post</a>.
+        <a href="#return13"><sup>&#x21ba;</sup></a>
+    </li>
+    <li name="footnote14">
+        Credit to Mathias Hueber in <a href="https://mathiashueber.com/performance-tweaks-gaming-on-virtual-machines/">this post</a>.
+        <a href="#return14"><sup>&#x21ba;</sup></a>
+    </li>
+    <li name="footnote15">
+        Credit to Rokas Kupstys in <a href="https://rokups.github.io/#!pages/gaming-vm-performance.md">this post.
+        <a href="#return15"><sup>&#x21ba;</sup></a>
+    </li>
+
 </ol>

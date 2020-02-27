@@ -12,6 +12,7 @@
     <hugepages/>
   </memoryBacking>
   <vcpu placement="static">12</vcpu>
+  <iothreads>5</iothreads>
   <cputune>
     <vcpupin vcpu="0" cpuset="6"/>
     <vcpupin vcpu="1" cpuset="18"/>
@@ -25,7 +26,12 @@
     <vcpupin vcpu="9" cpuset="22"/>
     <vcpupin vcpu="10" cpuset="11"/>
     <vcpupin vcpu="11" cpuset="23"/>
-    <emulatorpin cpuset="0-5,12-17"/>
+    <emulatorpin cpuset="0-1"/>
+    <iothreadpin iothread='1' cpuset='2-3'/>
+    <iothreadpin iothread='2' cpuset='4-5'/>
+    <iothreadpin iothread='3' cpuset='12-13'/>
+    <iothreadpin iothread='4' cpuset='14-15'/>
+    <iothreadpin iothread='5' cpuset='16-17'/>
   </cputune>
   <os>
     <type arch="x86_64" machine="pc-q35-4.0">hvm</type>
