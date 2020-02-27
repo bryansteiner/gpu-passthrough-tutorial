@@ -105,6 +105,7 @@ done
 ```
 
 For Intel systems, here's some sample output:
+
 ```
 ...
 IOMMU Group 1 00:01.0 PCI bridge [0604]: Intel Corporation Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x16) [8086:1901] (rev 07)
@@ -389,6 +390,7 @@ modprobe nvidia_drm
 ```
 
 Place these scripts so that your directory structure looks like this:
+
 ```
 $ tree /etc/libvirt/hooks/
 /etc/libvirt/hooks/
@@ -687,13 +689,13 @@ cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
     CPU Pinning
 </h4>
 
-This performance tweak applies *only* to those of you whose processors are [multithreaded](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)). My setup has an AMD Ryzen 3900X which has 12 physical cores and 24 threads (logical cores).
+This performance tweak applies *only* to those of you whose processors are [multithreaded](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)). My setup has an AMD Ryzen 9 3900X which has 12 physical cores and 24 threads (i.e. logical cores).
 
-VMs are unable to distinguish between these physical and logical cores. From the guest's perspective, virt-manager sees that there are 24 virtual CPUs (vcpu) available. From the host's perspective however, two virtual cores map to a physical core on the CPU die.
+VMs are unable to distinguish between these physical and logical cores. From the guest's perspective, virt-manager sees that there are 24 virtual CPUs (vCPU) available. From the host's perspective however, two virtual cores map to a single physical core on the CPU die.
 
-It's **very important** that when we passthrough a core, we include its sibling. To get a sense which cores are siblings just do `$ cat /proc/cpuinfo | grep "core id"`. A matching core id means the associated threads run in the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
+It's **very important** that when we passthrough a core, we include its sibling. To get a sense which cores use the following: `$ cat /proc/cpuinfo | grep "core id"`. A matching core id means the associated threads run on the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
 
-If you're more of a visual learner, perhaps this diagram of an AMD Ryzen 1800X (8 cores, 16 threads) will help you visualize what's going on. I highly recommend you check out [Mathias Hauber's tutorial](https://mathiashueber.com/performance-tweaks-gaming-on-virtual-machines/) which is the source of this image:
+If you're more of a visual learner, perhaps this diagram of an AMD Ryzen 7 1800X (8 cores, 16 threads) will help you visualize what's going on. I highly recommend you check out [Mathias Hauber's tutorial](https://mathiashueber.com/performance-tweaks-gaming-on-virtual-machines/) which is the source of this image:
 
 <div align="center">
     <img src="./img/cpu_architecture.png" width="300">
