@@ -538,7 +538,7 @@ In addition, instruct the kvm to hide its state by adding the following code dir
 </features>
 ```
 
-Finally, if you're using QEMU 4.0 with the q35 chipset you also need to add the following code at the end of the `features` tag:
+Finally, if you're using QEMU 4.0 with the q35 chipset you also need to add the following code at the end of `<features>`:
 
 ```
 <features>
@@ -726,7 +726,7 @@ It's time to edit the XML configuration of our VM. I've added the following line
 </cputune>
 ```
 
-In addition, edit the `cpu` block to define the cpu topography. In my case, my processor has 1 socket with 6 physical cores and 2 threads per core:
+In addition, edit `<cpu>` to define the CPU topography. In my case, my processor has 1 socket with 6 physical cores and 2 threads per core:
 
 ```
 <cpu mode="host-passthrough" check="none">
@@ -760,16 +760,11 @@ Hyper-V enlightenments help the guest VM handle virtualization tasks. [Libvirt](
 </features>
 ```
 
-<h4>
-    QEMU Guest Agent
-</h4>
-
-This last tweak isn't strictly a performance improvement but it's an important feature overlooked in other tutorials. The [QEMU guest agent](https://wiki.libvirt.org/page/Qemu_guest_agent)
-
-
 <h3 name="part5">
     Part 5: Benchmarks
 </h3>
+
+Congrats! You've finished setting up your Windows gaming VM... I've decided I want to compare the bare-metal performance of Windows against the Windows KVM. I'm hoping that all the work that was done previously gets us close to native performance. To check this, I will be using benchmarking software: [UserBenchmark](https://www.userbenchmark.com/).
 
 <h2 name="credits">
     Credits & Resources
