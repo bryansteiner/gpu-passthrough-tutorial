@@ -5,6 +5,7 @@ source "/etc/libvirt/hooks/kvm.conf"
 
 ## Calculate number of hugepages to allocate from memory (in MB)
 HUGEPAGES="$(($MEMORY/$(($(grep Hugepagesize /proc/meminfo | awk '{print $2}')/1024))))"
+
 echo "Allocating hugepages..."
 echo $HUGEPAGES > /proc/sys/vm/nr_hugepages
 ALLOC_PAGES=$(cat /proc/sys/vm/nr_hugepages)
