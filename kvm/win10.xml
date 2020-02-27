@@ -222,9 +222,5 @@
     <memballoon model="virtio">
       <address type="pci" domain="0x0000" bus="0x08" slot="0x00" function="0x0"/>
     </memballoon>
-    <channel type='unix'>
-       <source mode='bind' path='/var/lib/libvirt/qemu/f16x86_64.agent'/>
-       <target type='virtio' name='org.qemu.guest_agent.0'/>
-    </channel>
   </devices>
 </domain>
