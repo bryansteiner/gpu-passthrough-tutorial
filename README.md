@@ -764,10 +764,12 @@ Hyper-V enlightenments help the guest VM handle virtualization tasks. [Libvirt](
     Part 5: Benchmarks
 </h3>
 
-Congrats! You've finished setting up your Windows gaming VM... But now comes the most important part! Let's compare the bare-metal performance of Windows against our KVM. If everything goes right, we can expect somewhat close to native performance. In order to test our theory, I will be using the following benchmarking software: [UserBenchmark](https://www.userbenchmark.com/). Check out the results for yourself!<span name="return16"><sup>[16](#footnote16)</sup></span>
+Congrats! You've finished setting up your Windows gaming VM! But now comes the most important part... Let's compare the bare-metal performance of Windows against our KVM. If everything goes according to plan, we can expect somewhat close to native performance on the VM. In order to test this theory, I used the following benchmark software: [UserBenchmark](https://www.userbenchmark.com/). Check out the results for yourself:<span name="return16"><sup>[16](#footnote16)</sup></span>
 
 * [Windows Native](https://www.userbenchmark.com/UserRun/25008533)
 * [Windows KVM](https://www.userbenchmark.com/UserRun/25008992)
+
+Hopefully your results are as good as mine, if not better!
 
 <h2 name="credits">
     Credits & Resources
@@ -902,7 +904,7 @@ Congrats! You've finished setting up your Windows gaming VM... But now comes the
         <a href="#return15"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote16">
-        In order to keep things fair and equal, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes.
+        In order to keep things fair and equal, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes. Unfortunately, I couldn't passthrough all 32GB of RAM to the KVM since the host naturally reserves some of its own. In order to mitigate this as much as possible, I passed the remaining 29GB of RAM to the KVM.
         <a href="#return16"><sup>&#x21ba;</sup></a>
     </li>
 </ol>
