@@ -736,7 +736,7 @@ It's time to edit the XML configuration of our VM. I've added the following line
 </cputune>
 ```
 
-If you're wondering why I tuned my CPU configuration this way, I'll refer you to [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Libvirt domain XML format. More specifically, consider the differences between `vcpupin`, `emulatorpin`, and `iothreadpin`: 12 out of my 24 threads are assigned as vCPUs to the guest and from the remaining 12 cores assigned to the host, 2 threads are assigned to the emulator and 10 are assigned to handle IOThreads. If you're at all curious about the best CPU pinning strategy for optimizing the latency vs. performance tradeoff, I recommend you check out [this discussion](https://www.redhat.com/archives/vfio-users/2017-February/msg00010.html).
+If you're wondering why I tuned my CPU configuration this way, I'll refer you to [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Libvirt domain XML format.<span name="return16"><sup>[16](#footnote16)</sup></span> More specifically, consider the differences between `vcpupin`, `emulatorpin`, and `iothreadpin`: 12 out of my 24 threads are assigned as vCPUs to the guest and from the remaining 12 cores assigned to the host, 2 threads are assigned to the emulator and 10 are assigned to handle IOThreads.
 
 Go ahead and edit the `<cpu>` element to formally define the CPU topography. In my case, my processor has 1 socket with 6 physical cores and 2 threads per core:
 
@@ -776,7 +776,7 @@ Hyper-V enlightenments help the guest VM handle virtualization tasks. [Libvirt](
     Part 5: Benchmarks
 </h3>
 
-Congrats! You've finished setting up your Windows gaming VM! But now comes the most important part... Let's compare the bare-metal performance of Windows against our KVM. If everything goes according to plan, we can expect somewhat close to native performance on the VM. In order to test this theory, I used the following benchmark software: [UserBenchmark](https://www.userbenchmark.com/). Check out the results for yourself:<span name="return16"><sup>[16](#footnote16)</sup></span>
+Congrats! You've finished setting up your Windows gaming VM! But now comes the most important part... Let's compare the bare-metal performance of Windows against our KVM. If everything goes according to plan, we can expect somewhat close to native performance on the VM. In order to test this theory, I used the following benchmark software: [UserBenchmark](https://www.userbenchmark.com/). Check out the results<span name="return16"><sup>[17](#footnote17)</sup></span> for yourself:
 
 * [Windows Native](https://www.userbenchmark.com/UserRun/25008533)
 * [Windows KVM](https://www.userbenchmark.com/UserRun/25008992)
@@ -916,7 +916,11 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return15"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote16">
-        For the sake of fairness, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes. Unfortunately, I couldn't passthrough all 32GB of RAM to the KVM since the host naturally reserves some of its own. In order to mitigate this as much as possible, I passed the remaining 29GB of RAM to the KVM.
+        If you're at all curious about the best CPU pinning strategy for optimizing the latency vs. performance tradeoff, I recommend you check out [this discussion](https://www.redhat.com/archives/vfio-users/2017-February/msg00010.html).
         <a href="#return16"><sup>&#x21ba;</sup></a>
+    </li>
+    <li name="footnote17">
+        For the sake of fairness, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes. Unfortunately, I couldn't passthrough all 32GB of RAM to the KVM since the host naturally reserves some of its own. In order to mitigate this as much as possible, I passed the remaining 29GB of RAM to the KVM.
+        <a href="#return17"><sup>&#x21ba;</sup></a>
     </li>
 </ol>
