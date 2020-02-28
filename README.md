@@ -701,7 +701,7 @@ This performance tweak applies *only* to those of you whose processors are [mult
 
 VMs are unable to distinguish between these physical and logical cores. From the guest's perspective, virt-manager sees that there are 24 virtual CPUs (vCPUs) available. From the host's perspective however, two virtual cores map to a single physical core on the CPU die.
 
-It's **very important** that when we passthrough a core, we include its sibling. To get a sense of which cores are siblings, use the following: `$ cat /proc/cpuinfo | grep "core id"`. A matching core id means the associated threads run on the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
+It's **very important** that when we passthrough a core, we include its sibling. To get a sense of which cores are siblings, use the command `$ cat /proc/cpuinfo | grep "core id"`. A matching core id means that the associated threads run on the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
 
 If you're more of a visual learner, perhaps this diagram of an AMD Ryzen 7 1800X (8 cores, 16 threads) will help you visualize what's going on. I highly recommend you check out [Mathias Hauber's tutorial](https://mathiashueber.com/performance-tweaks-gaming-on-virtual-machines/) which is the source of this image:
 
