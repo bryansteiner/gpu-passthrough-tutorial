@@ -97,7 +97,7 @@ Similarly, if your system is configured with [GRUB2](https://help.ubuntu.com/com
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For Intel: `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on"`<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For AMD: `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on"`
 
-When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the nvidia/amd drivers. The logic stems from the fact that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add a kernel parameter called `pci-stub` with the [PCI bus ID](https://wiki.debian.org/HowToIdentifyADevice/PCI) of your GPU to achieve this. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and subsequently reversing these actions when the VM stops ([see Part 2](#part2)). That way, whenever the VM isn't in use, the GPU is available to the host machine on its native drivers.<span name="return4"><sup>[4](#footnote4)</sup></span>
+When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the nvidia/amd drivers. The logic stems from the fact that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add a kernel parameter called `pci-stub` with the [PCI bus ID](https://wiki.debian.org/HowToIdentifyADevice/PCI) of your GPU to achieve this. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and subsequently reversing these actions when the VM stops ([see Part 2](#part2)). That way, whenever the VM isn't in use, the GPU is available to the host machine to do work on its native drivers.<span name="return4"><sup>[4](#footnote4)</sup></span>
 
 Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. We'll want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following script:
 
@@ -505,7 +505,7 @@ Then under the 'Boot Options' menu, I added a check next to `Enable boot menu` a
     <img src="./img/virtman_14.png" width="450">
 </div><br>
 
-You can now go ahead and select the USB Host Devices you'd like to passthrough to your guest VM (usually a keyboard, mouse, etc.). Please note that these devices will be held by the guest VM from the moment it's created until its stopped and will be unavailable to the host.<span name="return11"><sup>[11](#footnote11)</sup></span>
+You can now go ahead and select the USB Host Devices you'd like to passthrough to your guest VM (usually a keyboard, mouse, etc.). Please note that these devices will be held by the guest VM from the moment it's created until it's stopped and will be unavailable to the host.<span name="return11"><sup>[11](#footnote11)</sup></span>
 
 <div align="center">
     <img src="./img/virtman_15.png" width="450">
@@ -629,7 +629,6 @@ then
     echo 0 > /proc/sys/vm/nr_hugepages
     exit 1
 fi
-
 ```
 
 `dealloc_hugepages.sh`
@@ -646,7 +645,7 @@ echo 0 > /proc/sys/vm/nr_hugepages
     CPU Governor Settings
 </h4>
 
-This performance tweak<span name="return14"><sup>[14](#footnote14)</sup></span> takes advantage of the [CPU scaling governor](https://wiki.archlinux.org/index.php/CPU_frequency_scaling) in Linux. It's a feature that is often ofterlooked in many passthrough tutorials, but we include it here because its recommended. Once again, we'll be utilizing libvirt's hook system ([see Part 2](#part2)):
+This performance tweak<span name="return14"><sup>[14](#footnote14)</sup></span> takes advantage of the [CPU scaling governor](https://wiki.archlinux.org/index.php/CPU_frequency_scaling) in Linux. It's a feature that is often ofterlooked in many passthrough tutorials, but we include it here because it's recommended. Once again, we'll be utilizing libvirt's hook system ([see Part 2](#part2)):
 
 ```
 $ tree /etc/libvirt/hooks/
@@ -698,9 +697,9 @@ cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
 This performance tweak applies *only* to those of you whose processors are [multithreaded](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)). My setup has an AMD Ryzen 9 3900X which has 12 physical cores and 24 threads (i.e. logical cores).
 
-VMs are unable to distinguish between these physical and logical cores. From the guest's perspective, virt-manager sees that there are 24 virtual CPUs (vCPU) available. From the host's perspective however, two virtual cores map to a single physical core on the CPU die.
+VMs are unable to distinguish between these physical and logical cores. From the guest's perspective, virt-manager sees that there are 24 virtual CPUs (vCPUs) available. From the host's perspective however, two virtual cores map to a single physical core on the CPU die.
 
-It's **very important** that when we passthrough a core, we include its sibling. To get a sense which cores use the following: `$ cat /proc/cpuinfo | grep "core id"`. A matching core id means the associated threads run on the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
+It's **very important** that when we passthrough a core, we include its sibling. To get a sense of which cores are siblings, use the following: `$ cat /proc/cpuinfo | grep "core id"`. A matching core id means the associated threads run on the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
 
 If you're more of a visual learner, perhaps this diagram of an AMD Ryzen 7 1800X (8 cores, 16 threads) will help you visualize what's going on. I highly recommend you check out [Mathias Hauber's tutorial](https://mathiashueber.com/performance-tweaks-gaming-on-virtual-machines/) which is the source of this image:
 
@@ -708,7 +707,7 @@ If you're more of a visual learner, perhaps this diagram of an AMD Ryzen 7 1800X
     <img src="./img/cpu_architecture.png" width="300">
 </div><br>
 
-It's time to edit the XML configuration of our VM. I've added the following lines of code (custom for every processor):
+It's time to edit the XML configuration of our VM. I've added the following lines of code (NOTE: customize for your processor):
 
 ```
 <vcpu placement="static">12</vcpu>
@@ -735,7 +734,9 @@ It's time to edit the XML configuration of our VM. I've added the following line
 </cputune>
 ```
 
-In addition, edit `<cpu>` to define the CPU topography. In my case, my processor has 1 socket with 6 physical cores and 2 threads per core:
+If you're wondering why I tuned my CPU configuration this way, I'll refer you to [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Libvirt domain XML format. More specifically, consider the differences between `vcpupin`, `emulatorpin`, and `iothreadpin`: 12 out of my 24 threads are assigned as vCPUs to the guest and from the remaining 12 cores assigned to the host, 2 threads are assigned to the emulator and 10 are assigned to handle IOThreads. If you're at all curious about the best CPU pinning strategy for optimizing the latency vs. performance tradeoff, I recommend you check out [this discussion](https://www.redhat.com/archives/vfio-users/2017-February/msg00010.html).
+
+Go ahead and edit the `<cpu>` element to formally define the CPU topography. In my case, my processor has 1 socket with 6 physical cores and 2 threads per core:
 
 ```
 <cpu mode="host-passthrough" check="none">
