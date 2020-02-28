@@ -19,7 +19,7 @@
     Introduction
 </h2>
 
-In this post, I will be giving detailed instructions on how to run a KVM setup with GPU-passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) (kernel v5.4.0) and a guest VM running Windows 10.
+In this post, I will be giving detailed instructions on how to run a KVM setup with GPU passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) (kernel v5.4.0) and a guest VM running Windows 10.
 
 <div align="center">
     <img src="./img/kvm-architecture.jpg" width="500">
@@ -34,7 +34,7 @@ In this post, I will be giving detailed instructions on how to run a KVM setup w
 
 The main reason I wanted to get this setup working was because I found myself tired of using a dual-boot setup. I wanted to launch a Windows VM specifically for gaming while still be able to use my Linux host for development work.
 
-At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU-passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch individual VMs with specific hardware attached to them. Performance wise, there are pros and cons to each approach.<span name="return1"><sup>[1](#footnote1)</sup></span>
+At this point, you might be wondering... Why not just game on Linux? This is definitely an option for many people, but not one that suited my particular needs. Gaming on Linux requires the use of tools like [Wine](https://en.wikipedia.org/wiki/Wine_(software)) which act as a compatabilty layer for translating Windows system calls to Linux system calls. On the other hand, a GPU passthrough setup utilizes [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) as a hypervisor to launch individual VMs with specific hardware attached to them. Performance wise, there are pros and cons to each approach.<span name="return1"><sup>[1](#footnote1)</sup></span>
 
 In this tutorial, I will create a GPU passthrough setup. Specifically, I will be passing through an NVIDIA GPU to my guest VM while using an AMD GPU for my host. You could easily substitute an iGPU for the host but I chose to use a dGPU for performance reasons.<span name="return2"><sup>[2](#footnote2)</sup></span>
 
@@ -97,7 +97,7 @@ Similarly, if your system is configured with [GRUB2](https://help.ubuntu.com/com
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For Intel: `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on"`<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For AMD: `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on"`
 
-When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the nvidia/amd drivers. The logic stems from the fact that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add a kernel parameter called `pci-stub` with the [PCI bus ID](https://wiki.debian.org/HowToIdentifyADevice/PCI) of your GPU to achieve this. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and subsequently reversing these actions when the VM stops ([see Part 2](#part2)). That way, whenever the VM isn't in use, the GPU is available to the host machine to do work on its native drivers.<span name="return4"><sup>[4](#footnote4)</sup></span>
+When planning my GPU passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the nvidia/amd drivers. The logic stems from the fact that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add a kernel parameter called `pci-stub` with the [PCI bus ID](https://wiki.debian.org/HowToIdentifyADevice/PCI) of your GPU to achieve this. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and subsequently reversing these actions when the VM stops ([see Part 2](#part2)). That way, whenever the VM isn't in use, the GPU is available to the host machine to do work on its native drivers.<span name="return4"><sup>[4](#footnote4)</sup></span>
 
 Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. For those of you who don't already know, [IOMMU](https://en.wikipedia.org/wiki/Input%E2%80%93output_memory_management_unit) refers to the chipset device that maps virtual addresses to physical addresses on your I/O devices (i.e. GPU, disk, etc.). Its function is analogous to the memory management unit ([MMU](https://en.wikipedia.org/wiki/Memory_management_unit)) that maps virtual addresses to physical addresses on your CPU.
 
@@ -421,7 +421,7 @@ We've succesfully created libvirt hook scripts to dynamically bind the vfio driv
     Part 3: Creating the VM
 </h3>
 
-We're ready to begin creating our VM. There are basically two options for how to achieve this: **(1)** If you prefer a GUI approach, then follow the rest of this tutorial. **(2)** If you prefer bash scripts, take a look at YuriAlek's series of [GPU-passthrough scripts](https://gitlab.com/YuriAlek/vfio) and customize them to fit your needs. The main difference between these two methods lies with the fact that the scripting approach uses [bare QEMU](https://www.mankier.com/1/qemu) commands<span name="return9"><sup>[9](#footnote9)</sup></span>, while the GUI approach uses [virt-manager](https://virt-manager.org/). Virt-manager essentially builds on-top of the QEMU base-layer and adds other features/complexity.<span name="return10"><sup>[10](#footnote10)</sup></span>
+We're ready to begin creating our VM. There are basically two options for how to achieve this: **(1)** If you prefer a GUI approach, then follow the rest of this tutorial. **(2)** If you prefer bash scripts, take a look at YuriAlek's series of [GPU passthrough scripts](https://gitlab.com/YuriAlek/vfio) and customize them to fit your needs. The main difference between these two methods lies with the fact that the scripting approach uses [bare QEMU](https://www.mankier.com/1/qemu) commands<span name="return9"><sup>[9](#footnote9)</sup></span>, while the GUI approach uses [virt-manager](https://virt-manager.org/). Virt-manager essentially builds on-top of the QEMU base-layer and adds other features/complexity.<span name="return10"><sup>[10](#footnote10)</sup></span>
 
 Go ahead and start virt-manager from your list of applications. Select the button on the top left of the GUI to create a new VM:
 
