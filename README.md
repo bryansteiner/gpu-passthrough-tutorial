@@ -703,13 +703,13 @@ VMs are unable to distinguish between these physical and logical cores. From the
 
 It's **very important** that when we passthrough a core, we include its sibling. To get a sense of which cores are siblings, use the command `$ cat /proc/cpuinfo | grep "core id"`. A matching core id means that the associated threads run on the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
 
-If you're more of a visual learner, perhaps a diagram of your CPUs architecture will help you visualize what's going on. Download the `hwloc` package with `$ sudo apt install hwloc`. Then simply type the command `$ lstopo`:
+If you're more of a visual learner, perhaps a diagram of your CPU architecture will help you visualize what's going on. Download the `hwloc` package with `$ sudo apt install hwloc`. Then simply type the command `$ lstopo`:
 
 <div align="center">
     <img src="./img/lstopo.png" width="450">
 </div><br>
 
-It's time to edit the XML configuration of our VM. I've added the following lines of code (NOTE: customize for your processor):
+It's time to edit the XML configuration of our VM. I've added the following lines of code (customize for your processor):
 
 ```
 <vcpu placement="static">12</vcpu>
