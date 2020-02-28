@@ -90,7 +90,7 @@ Now you're going to need to pass the hardware-enabled IOMMU functionality into t
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For Intel: `$ sudo kernelstub --add-options "intel_iommu=on"`<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For AMD: `$ sudo kernelstub --add-options "amd_iommu=on"`
 
-When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the nvidia/amd drivers. The logic stems from the fact that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add a kernel parameter called `pci-stub` with the ID of your GPU to achieve this. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and subsequently reversing these actions when the VM stops ([see Part 2](#part2). That way, whenever the VM isn't in use, the GPU is available to the host machine on its native drivers.<span name="return4"><sup>[4](#footnote4)</sup></span>
+When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the nvidia/amd drivers. The logic stems from the fact that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add a kernel parameter called `pci-stub` with the [PCI bus ID](https://wiki.debian.org/HowToIdentifyADevice/PCI) of your GPU to achieve this. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and subsequently reversing these actions when the VM stops ([see Part 2](#part2)). That way, whenever the VM isn't in use, the GPU is available to the host machine on its native drivers.<span name="return4"><sup>[4](#footnote4)</sup></span>
 
 Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. We'll want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following script:
 
@@ -468,7 +468,7 @@ Let's add the virtIO drivers. Click 'Add Hardware' and under 'Storage', create a
     <img src="./img/virtman_9.png" width="450">
 </div><br>
 
-Under the NIC menu, change the device model to `virtIO` for improved performance:
+Under the NIC menu, change the device model to `virtIO` for improved networking performance:
 
 <div align="center">
     <img src="./img/virtman_10.png" width="450">
@@ -549,7 +549,7 @@ Finally, if you're using QEMU 4.0 with the q35 chipset you also need to add the 
 </features>
 ```
 
-Now you should have no issues with regards to the NVIDIA Error 43. Later on, we will be making more changes to the XML to achieve better performance (see Part 4). At this point however, you can apply the changes and select "Begin Installation" at the top left of the GUI. Please be aware that this may take several minutes to complete.
+Now you should have no issues with regards to the NVIDIA Error 43. Later on, we will be making more changes to the XML to achieve better performance ([see Part 4](#part4)). At this point however, you can apply the changes and select "Begin Installation" at the top left of the GUI. Please be aware that this may take several minutes to complete.
 
 <h3 name="part4">
     Part 4: Improving VM Performance
