@@ -7,7 +7,7 @@
     * [Hardware Requirements](#hardware_requirements)
     * [Hardware Setup](#hardware_setup)
 * [Tutorial](#tutorial)
-    * [Part 1: Preqrequisites](#part1)
+    * [Part 1: Prerequisites](#part1)
     * [Part 2: VM Logistics](#part2)
     * [Part 3: Creating the VM](#part3)
     * [Part 4: Improving VM Performance](#part4)
