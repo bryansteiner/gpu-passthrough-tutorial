@@ -736,7 +736,7 @@ It's time to edit the XML configuration of our VM. I've added the following line
 </cputune>
 ```
 
-If you're wondering why I tuned my CPU configuration this way, I'll refer you to [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Libvirt domain XML format.<span name="return16"><sup>[16](#footnote16)</sup></span> More specifically, consider the differences between `vcpupin`, `emulatorpin`, and `iothreadpin`: 12 out of my 24 threads are assigned as vCPUs to the guest and from the remaining 12 cores assigned to the host, 2 threads are assigned to the emulator and 10 are assigned to handle IOThreads.
+If you're wondering why I tuned my CPU configuration this way, I'll refer you to [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Libvirt domain XML format.<span name="return16"><sup>[16](#footnote16)</sup></span> More specifically, consider the differences between `vcpupin`, `emulatorpin`, and `iothreadpin`: 12 out of my 24 threads are assigned as vCPUs to the guest and from the remaining 12 cores assigned to the host, 2 threads are assigned to the emulator and 10 threads are assigned to handle IOThreads.
 
 Go ahead and edit the `<cpu>` element to formally define the CPU topography. In my case, my processor has 1 socket with 6 physical cores and 2 threads per core:
 
