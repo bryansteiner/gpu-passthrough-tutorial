@@ -848,6 +848,7 @@ Hopefully your results are as good as mine, if not better!
 - Communities
     - [Reddit /r/vfio](https://www.reddit.com/r/vfio)
     - [Level1Techs](https://forum.level1techs.com/)
+    - [Red Hat vfio-users](https://www.redhat.com/archives/vfio-users/index.html)
     - [KVM Forum](https://www.youtube.com/channel/UCRCSQmAOh7yzgheq-emy1xA)
 
 <h2 name="footnotes">
