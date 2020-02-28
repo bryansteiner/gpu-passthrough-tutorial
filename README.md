@@ -917,7 +917,7 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return15"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote16">
-        If you're at all curious about the best CPU pinning strategy for optimizing the latency vs. performance tradeoff, I recommend you check out [this discussion](https://www.redhat.com/archives/vfio-users/2017-February/msg00010.html).
+        If you're curious about the best CPU pinning strategy for optimizing the latency vs. performance tradeoff, I recommend you check out <a href="https://www.redhat.com/archives/vfio-users/2017-February/msg00010.html">this discussion</a>.
         <a href="#return16"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote17">
