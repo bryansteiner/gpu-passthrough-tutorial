@@ -99,7 +99,9 @@ Similarly, if your system is configured with [GRUB2](https://help.ubuntu.com/com
 
 When planning my GPU-passthrough setup, I discovered that many tutorials at this point will go ahead and have you blacklist the nvidia/amd drivers. The logic stems from the fact that since the native drivers can't attach to the GPU at boot-time, the GPU will be freed-up and available to bind to the vfio drivers instead. Most tutorials will have you add a kernel parameter called `pci-stub` with the [PCI bus ID](https://wiki.debian.org/HowToIdentifyADevice/PCI) of your GPU to achieve this. I found that this solution wasn't suitable for me. I prefer to dynamically unbind the nvidia/amd drivers and bind the vfio drivers right before the VM starts and subsequently reversing these actions when the VM stops ([see Part 2](#part2)). That way, whenever the VM isn't in use, the GPU is available to the host machine to do work on its native drivers.<span name="return4"><sup>[4](#footnote4)</sup></span>
 
-Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. We'll want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following script:
+Next, we need to determine the IOMMU groups of the graphics card we want to pass through to the VM. For those of you who don't already know, [IOMMU](https://en.wikipedia.org/wiki/Input%E2%80%93output_memory_management_unit) refers to the chipset device that maps virtual addresses to physical addresses for your I/O devices. It's function is analogous to the memory management unit ([MMU](https://en.wikipedia.org/wiki/Memory_management_unit)) in CPUs that maps CPU virtual addresses to physical addresses.
+
+We want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following script:
 
 `iommu.sh`:
 ```
@@ -568,7 +570,7 @@ None of the following performance optimizations are necessary to get a working G
     Hugepages
 </h4>
 
-Memory (RAM) is divided up into basic segments called *pages*. By default, the x86 architecture has a page size of 4KB. CPUs utilize pages within a built in memory management unit (MMU). Although the standard page size is suitable for many tasks, *hugepages* are a mechanism that allow the Linux kernel to take advantage of large amounts of memory with reduced overhead. Hugepages can vary in size anywhere from 2MB to 1GB. Hugepages are enabled by default but if they aren't, make sure to download the package: `$ sudo apt install hugepages`.<span name="return12"><sup>[12](#footnote12)</sup></span>
+Memory (RAM) is divided up into basic segments called *pages*. By default, the x86 architecture has a page size of 4KB. CPUs utilize pages within the built in memory management unit ([MMU](https://en.wikipedia.org/wiki/Memory_management_unit)). Although the standard page size is suitable for many tasks, *hugepages* are a mechanism that allow the Linux kernel to take advantage of large amounts of memory with reduced overhead. Hugepages can vary in size anywhere from 2MB to 1GB. Hugepages are enabled by default but if they aren't, make sure to download the package: `$ sudo apt install hugepages`.<span name="return12"><sup>[12](#footnote12)</sup></span>
 
 Go back to your VM's XML settings by either using the virt-man GUI or the command: `$ sudo virsh edit {vm-name}`. Insert the `memoryBacking` lines so that your configuration looks like this:
 
