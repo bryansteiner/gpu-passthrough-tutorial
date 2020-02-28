@@ -850,7 +850,7 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return1"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote2">
-        I'll be using the term *iGPU* to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term *dGPU* to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (NVIDIA/AMD).
+        I'll be using the term <i>iGPU</i> to refer to Intel's line of integrated GPUs that usually come built into their processors, and the term <i>dGPU</i> to refer to dedicated GPUs which are much better performance-wise and meant for gaming or video editing (NVIDIA/AMD).
         <a href="#return2"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote3">
@@ -906,7 +906,7 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return15"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote16">
-        In order to keep things fair and equal, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes. Unfortunately, I couldn't passthrough all 32GB of RAM to the KVM since the host naturally reserves some of its own. In order to mitigate this as much as possible, I passed the remaining 29GB of RAM to the KVM.
+        For the sake of fairness, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes. Unfortunately, I couldn't passthrough all 32GB of RAM to the KVM since the host naturally reserves some of its own. In order to mitigate this as much as possible, I passed the remaining 29GB of RAM to the KVM.
         <a href="#return16"><sup>&#x21ba;</sup></a>
     </li>
 </ol>
