@@ -22,7 +22,7 @@
 In this post, I will be giving detailed instructions on how to run a KVM setup with GPU passthrough. This setup uses a Linux host installed with [Pop!\_OS 19.10](https://system76.com/pop) (kernel v5.4.0) and a guest VM running Windows 10.
 
 <div align="center">
-    <img src="./img/kvm-architecture.jpg" width="500">
+    <img src="./img/kvm_architecture.jpg" width="500">
     <p>
         Source: <a href="https://events.static.linuxfound.org/sites/events/files/slides/KVM,%20OpenStack,%20and%20the%20Open%20Cloud%20-%20ANJ%20MK%20%20-%2013Oct14.pdf">Open Virtualization Alliance (Jollans, IBM , Kadera, Intel)</a>
     </p>
