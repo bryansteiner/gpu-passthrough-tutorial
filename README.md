@@ -884,7 +884,7 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return6"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote7">
-        AMD CPUs/motherboards/chipsets tend to provide better ACS support than their Intel counterparts. The Intel Xeon family of processors is a notable exception. Xeon is mainly targeted at non-consumer workstations and thus are an excellent choice for PCI/VGA passthrough. Be aware that they do command a hefty price tag.
+        AMD CPUs/motherboards/chipsets tend to provide better ACS support than their Intel counterparts. The Intel Xeon family of processors is a notable exception. Xeon is mainly targeted at non-consumer workstations and thus are an excellent choice for PCI/VGA passthrough. Be aware that they do demand a hefty price tag.
         <a href="#return7"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote8">
