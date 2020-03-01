@@ -793,17 +793,19 @@ Hopefully your results are as good as mine, if not better!
         - [KVM](https://wiki.archlinux.org/index.php/KVM)
         - [Libvirt](https://wiki.archlinux.org/index.php/Libvirt)
         - [PCI Passthrough](https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF)
+        - [Kernel Parameters](https://wiki.archlinux.org/index.php/Kernel_parameters)
     - Libvirt
-        - [Domain XML](https://libvirt.org/formatdomain.html)
-        - [Wiki](https://wiki.libvirt.org/page/Main_Page)
+        - Wiki
             - [VM Lifecycle](https://wiki.libvirt.org/page/VM_lifecycle)
+            - [Domain XML](https://libvirt.org/formatdomain.html)
+            - [Hooks](https://libvirt.org/hooks.html)
             - [virtIO](https://wiki.libvirt.org/page/Virtio)
             - [QEMU Guest Agent](https://wiki.libvirt.org/page/Qemu_guest_agent)
         - [Manpages](https://libvirt.org/manpages/index.html)
             - [libvirtd](https://libvirt.org/manpages/libvirtd.html)
             - [virsh](https://libvirt.org/manpages/virsh.html)
             - [virt-qemu-run](https://libvirt.org/manpages/virt-qemu-run.html)
-        - [Hooks](https://libvirt.org/hooks.html)
+        - 
     - Linux Kernel
         - [KVM](https://www.kernel.org/doc/html/latest/virt/kvm/index.html)
         - [VFIO](https://www.kernel.org/doc/html/latest/driver-api/vfio.html?highlight=vfio%20pci)
