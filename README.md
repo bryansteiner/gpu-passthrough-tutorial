@@ -45,7 +45,7 @@ You're going to need the following to achieve a high-performance VM:
 - [Hardware that supports IOMMU](https://en.wikipedia.org/wiki/List_of_IOMMU-supporting_hardware).
 - A monitor with two inputs<span name="return3"><sup>[3](#footnote3)</sup></span> *or* multiple monitors.
 
-If you haven't built a PC yet but want it to be KVM/VFIO-focused, check out [this list of parts](https://passthroughpo.st/vfio-increments/) suggested by The Passthrough Post.
+If you haven't built a PC yet but want it to be KVM/VFIO-focused, check out [this list](https://passthroughpo.st/vfio-increments/) of parts suggested by The Passthrough Post.
 
 <h3 name="hardware_setup">
     Hardware Setup
