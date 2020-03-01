@@ -798,11 +798,9 @@ Hopefully your results are as good as mine, if not better!
         - [VM Lifecycle](https://wiki.libvirt.org/page/VM_lifecycle)
         - [Domain XML](https://libvirt.org/formatdomain.html)
         - [Hooks](https://libvirt.org/hooks.html)
-        - [virtIO](https://wiki.libvirt.org/page/Virtio)
-        - [QEMU Guest Agent](https://wiki.libvirt.org/page/Qemu_guest_agent)
         - [libvirtd](https://libvirt.org/manpages/libvirtd.html)
         - [virsh](https://libvirt.org/manpages/virsh.html)
-        - [virt-qemu-run](https://libvirt.org/manpages/virt-qemu-run.html)
+        - [virtIO](https://wiki.libvirt.org/page/Virtio)
     - Linux Kernel
         - [KVM](https://www.kernel.org/doc/html/latest/virt/kvm/index.html)
         - [VFIO](https://www.kernel.org/doc/html/latest/driver-api/vfio.html?highlight=vfio%20pci)
