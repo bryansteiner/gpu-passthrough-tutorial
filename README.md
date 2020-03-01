@@ -788,9 +788,6 @@ Hopefully your results are as good as mine, if not better!
 </h2>
 
 - Docs
-    - Linux Kernel
-        - [KVM](https://www.kernel.org/doc/html/latest/virt/kvm/index.html)
-        - [VFIO](https://www.kernel.org/doc/html/latest/driver-api/vfio.html?highlight=vfio%20pci)
     - ArchWiki
         - [QEMU](https://wiki.archlinux.org/index.php/QEMU)
         - [KVM](https://wiki.archlinux.org/index.php/KVM)
@@ -807,6 +804,9 @@ Hopefully your results are as good as mine, if not better!
             - [virsh](https://libvirt.org/manpages/virsh.html)
             - [virt-qemu-run](https://libvirt.org/manpages/virt-qemu-run.html)
         - [Hooks](https://libvirt.org/hooks.html)
+    - Linux Kernel
+        - [KVM](https://www.kernel.org/doc/html/latest/virt/kvm/index.html)
+        - [VFIO](https://www.kernel.org/doc/html/latest/driver-api/vfio.html?highlight=vfio%20pci)
 - Tutorials
     - Heiko Sieger - [Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
     - Alex Williamson - VFIO GPU How To series
