@@ -278,7 +278,7 @@ IOMMU Group 16 02:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/AT
 
 Since we're building a Windows VM, we're going to need to download and use the virtIO drivers. [virtIO](https://www.linux-kvm.org/page/Virtio) is a virtualization standard for network and disk device drivers. Adding the virtIO drivers can be done by attaching its relevant ISO to the Windows VM during creation. Fedora provides the virtIO drivers for [direct download](https://docs.fedoraproject.org/en-US/quick-docs/creating-windows-virtual-machines-using-virtio-drivers/#virtio-win-direct-downloads).
 
-Since I am passing through an entire NVMe SSD (1 TB), I won't need to install any 3rd party drivers on top of the virtIO driver. Passing through the SSD as a PCI device lets Windows deal with it as a native NVMe device and therefore *should* offer better performance. If you choose to use a raw disk image instead, things are going to be a little different... Make sure to follow the instructions in [this guide](https://frdmtoplay.com/virtualizing-windows-7-or-linux-on-a-nvme-drive-with-vfio/#builddriveriso). The guide will show you how to add 3rd party drivers on top of the existing virtIO drivers by rebuilding the ISO.
+Since I am passing through an entire NVMe SSD (1TB), I won't need to install any 3rd party drivers on top of the virtIO driver. Passing through the SSD as a PCI device lets Windows deal with it as a native NVMe device and therefore *should* offer better performance. If you choose to use a raw disk image instead, things are going to be a little different... Make sure to follow the instructions in [this guide](https://frdmtoplay.com/virtualizing-windows-7-or-linux-on-a-nvme-drive-with-vfio/#builddriveriso). The guide will show you how to add 3rd party drivers on top of the existing virtIO drivers by rebuilding the ISO.
 
 For the final step, we're going to need to download the Windows 10 ISO from Microsoft which you can find [here](https://www.microsoft.com/en-us/software-download/windows10ISO).
 
@@ -796,11 +796,19 @@ Hopefully your results are as good as mine, if not better!
         - [KVM](https://wiki.archlinux.org/index.php/KVM)
         - [Libvirt](https://wiki.archlinux.org/index.php/Libvirt)
         - [PCI Passthrough](https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF)
-    - Libvirt Wiki
-        - [virtIO](https://wiki.libvirt.org/page/Virtio)
+    - Libvirt
+        - [XML](https://libvirt.org/format.html)
+            - [Domain] (https://libvirt.org/formatdomain.html)
+        - [Manpages](https://libvirt.org/manpages/index.html)
+            - [libvirtd](https://libvirt.org/manpages/libvirtd.html)
+            - [virsh](https://libvirt.org/manpages/virsh.html)
+            - [virt-qemu-run](https://libvirt.org/manpages/virt-qemu-run.html)
+        - [Wiki](https://wiki.libvirt.org/page/Main_Page)
+            - [VM Lifecycle](https://wiki.libvirt.org/page/VM_lifecycle)
+            - [virtIO](https://wiki.libvirt.org/page/Virtio)
+            - [QEMU Guest Agent](https://wiki.libvirt.org/page/Qemu_guest_agent)
         - [Hooks](https://libvirt.org/hooks.html)
-        - [Domain XML](https://libvirt.org/formatdomain.html)
-        - [QEMU Guest Agent](https://wiki.libvirt.org/page/Qemu_guest_agent)
+        
 - Tutorials
     - Heiko Sieger - [Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
     - Alex Williamson - VFIO GPU How To series
