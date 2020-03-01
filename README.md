@@ -807,7 +807,6 @@ Hopefully your results are as good as mine, if not better!
             - [virsh](https://libvirt.org/manpages/virsh.html)
             - [virt-qemu-run](https://libvirt.org/manpages/virt-qemu-run.html)
         - [Hooks](https://libvirt.org/hooks.html)
-        
 - Tutorials
     - Heiko Sieger - [Running Windows 10 on Linux using KVM with VGA Passthrough](https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough)
     - Alex Williamson - VFIO GPU How To series
