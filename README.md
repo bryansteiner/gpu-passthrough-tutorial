@@ -797,16 +797,15 @@ Hopefully your results are as good as mine, if not better!
         - [Libvirt](https://wiki.archlinux.org/index.php/Libvirt)
         - [PCI Passthrough](https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF)
     - Libvirt
-        - [XML](https://libvirt.org/format.html)
-            - [Domain] (https://libvirt.org/formatdomain.html)
-        - [Manpages](https://libvirt.org/manpages/index.html)
-            - [libvirtd](https://libvirt.org/manpages/libvirtd.html)
-            - [virsh](https://libvirt.org/manpages/virsh.html)
-            - [virt-qemu-run](https://libvirt.org/manpages/virt-qemu-run.html)
+        - [Domain XML](https://libvirt.org/formatdomain.html)
         - [Wiki](https://wiki.libvirt.org/page/Main_Page)
             - [VM Lifecycle](https://wiki.libvirt.org/page/VM_lifecycle)
             - [virtIO](https://wiki.libvirt.org/page/Virtio)
             - [QEMU Guest Agent](https://wiki.libvirt.org/page/Qemu_guest_agent)
+        - [Manpages](https://libvirt.org/manpages/index.html)
+            - [libvirtd](https://libvirt.org/manpages/libvirtd.html)
+            - [virsh](https://libvirt.org/manpages/virsh.html)
+            - [virt-qemu-run](https://libvirt.org/manpages/virt-qemu-run.html)
         - [Hooks](https://libvirt.org/hooks.html)
         
 - Tutorials
