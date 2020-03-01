@@ -849,7 +849,7 @@ Hopefully your results are as good as mine, if not better!
     - Neo Jia & Kirti Wankhede - NVIDIA
         - [vGPU on KVM - A VFIO Based Framework](https://www.youtube.com/watch?v=Xs0TJU_sIPc&t=164s)
 - Communities
-    - [Reddit /r/vfio](https://www.reddit.com/r/vfio)
+    - [Reddit /r/vfio](https://www.reddit.com/r/VFIO/wiki/index)
     - [Level1Techs](https://forum.level1techs.com/)
     - [Red Hat vfio-users](https://www.redhat.com/archives/vfio-users/index.html)
     - [KVM Forum](https://www.youtube.com/channel/UCRCSQmAOh7yzgheq-emy1xA)
