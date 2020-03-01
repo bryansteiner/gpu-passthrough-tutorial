@@ -776,7 +776,7 @@ Hyper-V enlightenments help the guest VM handle virtualization tasks. [Libvirt](
     Part 5: Benchmarks
 </h3>
 
-Congrats! You've finished setting up your Windows gaming VM! But now comes the most important part... Let's compare the bare-metal performance of Windows against our KVM. If everything goes according to plan, we can expect somewhat close to native performance on the VM. In order to test this theory, I used the following benchmark software: [UserBenchmark](https://www.userbenchmark.com/). Check out the results<span name="return16"><sup>[17](#footnote17)</sup></span> for yourself:
+Congrats! You've finished setting up your Windows gaming VM! But now comes the most important part... Let's compare the bare-metal performance of Windows against our KVM. If everything goes according to plan, we can expect somewhat close to native performance on the VM. In order to test this theory, I used the following benchmark software: [UserBenchmark](https://www.userbenchmark.com/). Check out the results<span name="return17"><sup>[17](#footnote17)</sup></span> for yourself:
 
 * [Windows Native](https://www.userbenchmark.com/UserRun/25008533)
 * [Windows KVM](https://www.userbenchmark.com/UserRun/25008992)
