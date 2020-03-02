@@ -96,9 +96,9 @@ cpu_mode_performance
 ## QEMU KVM
 #TODO
 
+cpu_mode_ondemand
 deallocate_hugepages
 unbind_vfio
-cpu_mode_ondemand
 
 ## Start the display manager
 #systemctl start display-manager.service
