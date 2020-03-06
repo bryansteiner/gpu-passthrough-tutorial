@@ -353,11 +353,6 @@ Make sure to substitute the correct bus addresses for the devices you'd like to 
 ## Load the config file
 source "/etc/libvirt/hooks/kvm.conf"
 
-## Unload nvidia
-modprobe -r nvidia_drm
-modprobe -r nvidia_uvm
-modprobe -r nvidia_modeset
-
 ## Load vfio
 modprobe vfio
 modprobe vfio_iommu_type1
@@ -391,11 +386,6 @@ virsh nodedev-reattach $VIRSH_NVME_SSD
 modprobe -r vfio_pci
 modprobe -r vfio_iommu_type1
 modprobe -r vfio
-
-## Load nvidia
-modprobe nvidia_modeset
-modprobe nvidia_uvm
-modprobe nvidia_drm
 ```
 
 Place these scripts so that your directory structure looks like this:
