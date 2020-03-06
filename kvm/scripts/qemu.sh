@@ -10,11 +10,6 @@ source "/etc/libvirt/hooks/kvm.conf"
 [[ $(systemctl status libvirtd | grep running) ]] || systemctl start libvirtd && sleep 1 && LIBVIRTD=STOPPED
 
 function bind_vfio {
-    ## Unload nvidia
-    modprobe -r nvidia_drm
-    modprobe -r nvidia_uvm
-    modprobe -r nvidia_modeset
-
     ## Load vfio
     modprobe vfio
     modprobe vfio_iommu_type1
@@ -42,11 +37,6 @@ function unbind_vfio {
     modprobe -r vfio_pci
     modprobe -r vfio_iommu_type1
     modprobe -r vfio
-    
-    ## Load nvidia
-    modprobe nvidia_modeset
-    modprobe nvidia_uvm
-    modprobe nvidia_drm
 }
 
 function allocate_hugepages {
