@@ -807,6 +807,7 @@ Hopefully your results are as good as mine, if not better!
         - Wendell is from [Level1Techs](https://level1techs.com/). He has contributed to the FOSS community with a cool application called [Looking Glass](https://looking-glass.hostfission.com/). I recommend you check out this [video](https://www.youtube.com/watch?v=okMGtwfiXMo) for more information.
         - Wendell has even collaborated with Linus from [Linus Tech Tips](https://www.youtube.com/user/LinusTechTips) and put out [this video](https://www.youtube.com/watch?v=SsgI1mkx6iw).
     - Yuri Alek - [Single GPU passthrough](https://gitlab.com/YuriAlek/vfio)
+    - Arseniy Shestakov - [How To: pass GPU to VM and back without X restart](https://arseniyshestakov.com/2016/03/31/how-to-pass-gpu-to-vm-and-back-without-x-restart/)
     - Jack Ford - [Ubuntu 18.04 - KVM/QEMU Windows 10 GPU Passthrough](https://blog.zerosector.io/2018/07/28/kvm-qemu-windows-10-gpu-passthrough/)
     - Bsilvereagle - [Virtualizing Windows 7 (or Linux) on a NVMe drive with VFIO](https://frdmtoplay.com/virtualizing-windows-7-or-linux-on-a-nvme-drive-with-vfio/)
     - Mathias Hauber
