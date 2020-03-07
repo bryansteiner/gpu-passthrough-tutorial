@@ -42,6 +42,11 @@ function unbind_vfio {
     modprobe -r vfio_pci
     modprobe -r vfio_iommu_type1
     modprobe -r vfio
+    
+    ## Load nvidia
+    modprobe nvidia_modeset
+    modprobe nvidia_uvm
+    modprobe nvidia_drm
 }
 
 function allocate_hugepages {
