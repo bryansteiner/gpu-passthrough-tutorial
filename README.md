@@ -637,7 +637,7 @@ echo 0 > /proc/sys/vm/nr_hugepages
     CPU Governor Settings
 </h4>
 
-This performance tweak<span name="return14"><sup>[14](#footnote14)</sup></span> takes advantage of the [CPU scaling governor](https://wiki.archlinux.org/index.php/CPU_frequency_scaling) in Linux. It's a feature that is often ofterlooked in many passthrough tutorials, but we include it here because it's recommended. Once again, we'll be utilizing libvirt's hook system ([see Part 2](#part2)):
+This performance tweak<span name="return14"><sup>[14](#footnote14)</sup></span> takes advantage of the [CPU scaling governor](https://wiki.archlinux.org/index.php/CPU_frequency_scaling#Scaling_governors) in Linux. It's a feature that is often ofterlooked in many passthrough tutorials, but we include it here because it's recommended. Once again, we'll be utilizing libvirt's hook system ([see Part 2](#part2)):
 
 ```
 $ tree /etc/libvirt/hooks/
