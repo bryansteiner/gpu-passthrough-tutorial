@@ -503,7 +503,7 @@ You can now go ahead and select the USB Host Devices you'd like to passthrough t
     <img src="./img/virtman_15.png" width="450">
 </div><br>
 
-Unfortunately, not everything we need can be accomplished within the virt-manager GUI. For the rest of this section, we'll have to do some fine-tuning by directly editing the XML:
+Unfortunately, not everything we need can be accomplished within the virt-manager GUI. For the rest of this section, we'll have to do some fine-tuning by directly editing the XML (make sure to "Enable XML settings" under Edit -> Preferences -> General or use `$ sudo virsh edit win10` for a command-line approach):
 
 <div align="center">
     <img src="./img/virtman_16.png" width="450">
