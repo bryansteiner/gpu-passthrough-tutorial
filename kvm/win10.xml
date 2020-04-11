@@ -27,11 +27,11 @@
     <vcpupin vcpu="10" cpuset="11"/>
     <vcpupin vcpu="11" cpuset="23"/>
     <emulatorpin cpuset="0-1"/>
-    <iothreadpin iothread='1' cpuset='2-3'/>
-    <iothreadpin iothread='2' cpuset='4-5'/>
-    <iothreadpin iothread='3' cpuset='12-13'/>
-    <iothreadpin iothread='4' cpuset='14-15'/>
-    <iothreadpin iothread='5' cpuset='16-17'/>
+    <iothreadpin iothread="1" cpuset="2-3"/>
+    <iothreadpin iothread="2" cpuset="4-5"/>
+    <iothreadpin iothread="3" cpuset="12-13"/>
+    <iothreadpin iothread="4" cpuset="14-15"/>
+    <iothreadpin iothread="5" cpuset="16-17"/>
   </cputune>
   <os>
     <type arch="x86_64" machine="pc-q35-4.0">hvm</type>
@@ -46,12 +46,12 @@
       <relaxed state="on"/>
       <vapic state="on"/>
       <spinlocks state="on" retries="8191"/>
+      <vpindex state="on"/>
+      <synic state="on"/>
+      <stimer state="on"/>
+      <reset state="on"/>
       <vendor_id state="on" value="kvm hyperv"/>
-      <vpindex state='on'/>
-      <synic state='on'/>
-      <stimer state='on'/>
-      <reset state='on'/>
-      <frequencies state='on'/>
+      <frequencies state="on"/>
     </hyperv>
     <kvm>
       <hidden state="on"/>
@@ -61,8 +61,8 @@
   </features>
   <cpu mode="host-passthrough" check="none">
     <topology sockets="1" cores="6" threads="2"/>
-    <cache mode='passthrough'/>
-    <feature policy='require' name='topoext'/>
+    <cache mode="passthrough"/>
+    <feature policy="require" name="topoext"/>
   </cpu>
   <clock offset="localtime">
     <timer name="rtc" tickpolicy="catchup"/>
@@ -89,7 +89,7 @@
     </disk>
     <disk type="file" device="cdrom">
       <driver name="qemu" type="raw"/>
-      <source file="/home/bsteiner/.iso/virtio-win-0.1.173.iso"/>
+      <source file="/home/bsteiner/.iso/virtio-win-0.1.171.iso"/>
       <target dev="sdb" bus="sata"/>
       <readonly/>
       <boot order="3"/>
@@ -172,30 +172,6 @@
     <input type="keyboard" bus="ps2"/>
     <hostdev mode="subsystem" type="pci" managed="yes">
       <source>
-        <address domain="0x0000" bus="0x0a" slot="0x00" function="0x0"/>
-      </source>
-      <address type="pci" domain="0x0000" bus="0x03" slot="0x00" function="0x0"/>
-    </hostdev>
-    <hostdev mode="subsystem" type="pci" managed="yes">
-      <source>
-        <address domain="0x0000" bus="0x0a" slot="0x00" function="0x1"/>
-      </source>
-      <address type="pci" domain="0x0000" bus="0x04" slot="0x00" function="0x0"/>
-    </hostdev>
-    <hostdev mode="subsystem" type="pci" managed="yes">
-      <source>
-        <address domain="0x0000" bus="0x0a" slot="0x00" function="0x2"/>
-      </source>
-      <address type="pci" domain="0x0000" bus="0x05" slot="0x00" function="0x0"/>
-    </hostdev>
-    <hostdev mode="subsystem" type="pci" managed="yes">
-      <source>
-        <address domain="0x0000" bus="0x0a" slot="0x00" function="0x3"/>
-      </source>
-      <address type="pci" domain="0x0000" bus="0x06" slot="0x00" function="0x0"/>
-    </hostdev>
-    <hostdev mode="subsystem" type="pci" managed="yes">
-      <source>
         <address domain="0x0000" bus="0x04" slot="0x00" function="0x0"/>
       </source>
       <boot order="1"/>
@@ -218,6 +194,30 @@
         <address domain="0x0000" bus="0x07" slot="0x00" function="0x3"/>
       </source>
       <address type="pci" domain="0x0000" bus="0x0c" slot="0x00" function="0x0"/>
+    </hostdev>
+    <hostdev mode="subsystem" type="pci" managed="yes">
+      <source>
+        <address domain="0x0000" bus="0x0d" slot="0x00" function="0x0"/>
+      </source>
+      <address type="pci" domain="0x0000" bus="0x03" slot="0x00" function="0x0"/>
+    </hostdev>
+    <hostdev mode="subsystem" type="pci" managed="yes">
+      <source>
+        <address domain="0x0000" bus="0x0d" slot="0x00" function="0x1"/>
+      </source>
+      <address type="pci" domain="0x0000" bus="0x04" slot="0x00" function="0x0"/>
+    </hostdev>
+    <hostdev mode="subsystem" type="pci" managed="yes">
+      <source>
+        <address domain="0x0000" bus="0x0d" slot="0x00" function="0x2"/>
+      </source>
+      <address type="pci" domain="0x0000" bus="0x05" slot="0x00" function="0x0"/>
+    </hostdev>
+    <hostdev mode="subsystem" type="pci" managed="yes">
+      <source>
+        <address domain="0x0000" bus="0x0d" slot="0x00" function="0x3"/>
+      </source>
+      <address type="pci" domain="0x0000" bus="0x06" slot="0x00" function="0x0"/>
     </hostdev>
     <memballoon model="virtio">
       <address type="pci" domain="0x0000" bus="0x08" slot="0x00" function="0x0"/>
