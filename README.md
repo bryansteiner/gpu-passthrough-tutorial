@@ -915,7 +915,7 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return16"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote17">
-        For the sake of fairness, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes. Unfortunately, I couldn't passthrough all 32GB of RAM to the KVM since the host naturally reserves some of its own. In order to mitigate this as much as possible, I passed the remaining 29GB of RAM to the KVM.
+        For the sake of fairness, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes. Unfortunately, I couldn't passthrough all 32GB of RAM to the KVM since the host naturally reserves some of its own. In order to mitigate this as much as possible, I passed the remaining 29GB of RAM to the KVM. Due to its nature, a surplus of RAM doesn't really improve performance so much as it prevents bottlenecking.
         <a href="#return17"><sup>&#x21ba;</sup></a>
     </li>
 </ol>
