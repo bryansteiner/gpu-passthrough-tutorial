@@ -344,7 +344,7 @@ VIRSH_GPU_SERIAL=pci_0000_0a_00_3
 VIRSH_NVME_SSD=pci_0000_04_00_0
 ```
 
-Make sure to substitute the correct bus addresses for the devices you'd like to passthrough to your VM (in my case a GPU and SSD). Now create two executable bash scripts:
+Make sure to substitute the correct bus addresses for the devices you'd like to passthrough to your VM (in my case a GPU and SSD). Just in case it's still unclear, you get the virsh PCI device IDs from the `iommu.sh` script's output. Translate the address for each device as (i.e. `IOMMU Group 1 01:00.0` --> `pci_0000_01_00_0`). Now create two executable bash scripts:
 
 `bind_vfio.sh`:
 ```
