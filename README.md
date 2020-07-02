@@ -741,13 +741,13 @@ As you may or may not remember, my setup passes control of an SSD device control
 
 KVM and QEMU provide two paravirtualized storage backends: the older virtio-blk (default) and the more modern virtio-scsi. Although it's beyond the scope of this tutorial to discuss their differences, [this post](https://mpolednik.github.io/2017/01/23/virtio-blk-vs-virtio-scsi/) highlights the main architectural difference between the two:
 
-virtio-blk:
+`virtio-blk`:
 ```
 guest: app -> Block Layer -> virtio-blk
 host: QEMU -> Block Layer -> Block Device Driver -> Hardware
 ```
 
-virtio-scsi:
+`virtio-scsi`:
 ```
 guest: app -> Block Layer -> SCSI Layer -> scsi_mod
 host: QEMU -> Block Layer -> SCSI Layer -> Block Device Driver -> Hardware
@@ -768,9 +768,9 @@ In essence, virtio-scsi adds an additional complexity layer that provides it wit
 Here you can see that I've included an `iothreads` element with a value of 1. I've also included the `iothreadpin` element to define the number of CPU pins applied to the single iothread. I highly recommend reviewing [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Arch Wiki to decide on your CPU pinning strategy. Ultimately, it's up to you on how you want to divide the CPU pins among the emulator and iothreads.
 
 
-The final step is to either **(1)** create the virtio-scsi controller and attach our disk or **(2)** make sure our disk is defined correctly for virtio-blk (default). Note: you can **only** have one iothread per disk controller; any additional disks will require their own controllers.
+The final step is to either **(1)** create the virtio-scsi controller and attach our disk or **(2)** make sure our disk is defined correctly for virtio-blk (default). Note that you can *only* have one iothread per disk controller.
 
-**(1)** virtio-scsi:
+`virtio-scsi`:
 ```
 <domain type="kvm">
     ...
@@ -792,7 +792,7 @@ The final step is to either **(1)** create the virtio-scsi controller and attach
 </domain>
 ```
 
-**(2)** virtio-blk:
+`virtio-blk`:
 ```
 <domain type="kvm">
     ...
@@ -809,7 +809,7 @@ The final step is to either **(1)** create the virtio-scsi controller and attach
 </domain>
 ```
 
-The final thing to remember is that during windows installation you need to include the virtio-iso as the second CDROM (which we've already done [here](#virtual-iso)) so you can load the drivers.
+The final thing to remember is that during the windows installation on your virtual disk, you need to include the virtio-iso as the second CDROM to load the drivers (we've already completed this in a [previous step](#virtual-iso)).
 
 <h4>
     Hyper-V Enlightenments
