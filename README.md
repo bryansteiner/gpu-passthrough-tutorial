@@ -987,7 +987,7 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return16"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote17">
-        Although the overall performance between virtio-blk and virtio-scsi is similar, passing a single virtio-scsi controller can handle a multitude of PCI devices, whereas virtio-blk exposes one PCI device per controller (usually limited frpm 21-24). <a href="https://www.reddit.com/r/redhat/comments/6cuydw/in_rhv_what_is_the_difference_between_virtio_and/">This comment</a> on Reddit from a RedHat employee provides some good context and resources.
+        Although the overall performance between virtio-blk and virtio-scsi is similar, passing a single virtio-scsi controller can handle a multitude of PCI devices, whereas virtio-blk exposes one PCI device per controller. <a href="https://www.reddit.com/r/redhat/comments/6cuydw/in_rhv_what_is_the_difference_between_virtio_and/">This comment</a> on Reddit from a RedHat employee provides some good context and resources.
         <a href="#return17"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote18">
