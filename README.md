@@ -753,7 +753,7 @@ guest: app -> Block Layer -> SCSI Layer -> scsi_mod
 host: QEMU -> Block Layer -> SCSI Layer -> Block Device Driver -> Hardware
 ```
 
-In essence, virtio-scsi adds an additional complexity layer that provides it with more features and flexibility than virtio-blk<span name="return17"><sup>[17](#footnote17)</sup></span>. Whichever paravirtualized storage type you decide to go with is entirely up to you; I suggest you run performance tests on both. Make sure that in your CPU configuration, you've assigned an [IOThread](https://libvirt.org/formatdomain.html#elementsIOThreadsAllocation):
+In essence, virtio-scsi adds an additional complexity layer that provides it with more features and flexibility than virtio-blk.<span name="return17"><sup>[17](#footnote17)</sup></span> Whichever paravirtualized storage type you decide to go with is entirely up to you; I suggest you run performance tests on both. Make sure that in your CPU configuration, you've assigned an [IOThread](https://libvirt.org/formatdomain.html#elementsIOThreadsAllocation):
 
 ```
 <vcpu placement="static">12</vcpu>
