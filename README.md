@@ -780,10 +780,12 @@ The final step is to either **(1)** create the virtio-scsi controller and attach
             <driver name='qemu' type='raw' cache='none' io='threads' discard='unmap' queues='8'/>
             <source dev='/var/lib/libvirt/images/pool/win10.img'/>
             <target dev='sdc' bus='scsi'/>
+            <address type='drive' controller='0' bus='0' target='0' unit='2'/>
         </disk>
         ...
         <controller type='scsi' index='0' model='virtio-scsi'>
             <driver iothread='1' queues='8'/>
+            <address type='pci' domain='0x0000' bus='0x03' slot='0x00' function='0x0'/>
         </controller>       
         ...
       </devices>
