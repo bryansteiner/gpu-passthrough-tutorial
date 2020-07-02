@@ -461,7 +461,7 @@ I've chosen to remove several of the menu options that won't be useful to my set
     <img src="./img/virtman_8.png" width="450">
 </div><br>
 
-Let's add the <div name="virtio-iso">virtIO drivers</div>. Click 'Add Hardware' and under 'Storage', create a custom storage device of type `CDROM`. Make sure to locate the ISO image for the virtIO drivers from earlier:
+Let's add the <span name="virtio-iso">virtIO drivers</span>. Click 'Add Hardware' and under 'Storage', create a custom storage device of type `CDROM`. Make sure to locate the ISO image for the virtIO drivers from earlier:
 
 <div align="center">
     <img src="./img/virtman_9.png" width="450">
@@ -809,7 +809,7 @@ The final step is to either: **(1)** create the virtio-scsi controller and attac
 </domain>
 ```
 
-The final thing to remember is that during the windows installation on your virtual disk, you need to include the virtio-iso as the second CDROM to load the drivers (we've already completed this in a [previous step](#virtual-iso)).
+The final thing to remember is that during the windows installation on your virtual disk, you need to include the virtio-iso as the second CDROM to load the drivers (we've already completed this in a [previous section](#virtio-iso)).
 
 <h4>
     Hyper-V Enlightenments
