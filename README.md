@@ -431,7 +431,7 @@ Configure some custom RAM and CPU settings for your VM:
     <img src="./img/virtman_3.png" width="450">
 </div><br>
 
-Next, the GUI asks us whether we want to enable storage for the VM. As already mentioned, my setup will be using SSD passthrough so I chose not to enable storage. You also have the option to create a raw disk image:
+Next, the GUI asks us whether we want to enable storage for the VM. As already mentioned, my setup will be using SSD passthrough so I chose not to enable virtual storage. However, you still have the option to enable storage and create a RAW disk image which will be stored under the default path of `/var/lib/libvirt/images`:
 
 <div align="center">
     <img src="./img/virtman_4.png" width="450">
@@ -461,7 +461,7 @@ I've chosen to remove several of the menu options that won't be useful to my set
     <img src="./img/virtman_8.png" width="450">
 </div><br>
 
-Let's add the virtIO drivers. Click 'Add Hardware' and under 'Storage', create a custom storage device of type `CDROM`. Make sure to locate the ISO image for the virtIO drivers from earlier:
+Let's add the <div id="virtio-iso">virtIO drivers</div>. Click 'Add Hardware' and under 'Storage', create a custom storage device of type `CDROM`. Make sure to locate the ISO image for the virtIO drivers from earlier:
 
 <div align="center">
     <img src="./img/virtman_9.png" width="450">
@@ -703,7 +703,6 @@ It's time to edit the XML configuration of our VM. I've added the following line
 
 ```
 <vcpu placement="static">12</vcpu>
-<iothreads>5</iothreads>
 <cputune>
     <vcpupin vcpu="0" cpuset="6"/>
     <vcpupin vcpu="1" cpuset="18"/>
@@ -717,16 +716,12 @@ It's time to edit the XML configuration of our VM. I've added the following line
     <vcpupin vcpu="9" cpuset="22"/>
     <vcpupin vcpu="10" cpuset="11"/>
     <vcpupin vcpu="11" cpuset="23"/>
-    <emulatorpin cpuset="0-1"/>
-    <iothreadpin iothread='1' cpuset='2-3'/>
-    <iothreadpin iothread='2' cpuset='4-5'/>
-    <iothreadpin iothread='3' cpuset='12-13'/>
-    <iothreadpin iothread='4' cpuset='14-15'/>
-    <iothreadpin iothread='5' cpuset='16-17'/>
+    <emulatorpin cpuset="0-3"/>
+    <iothreadpin iothread='1' cpuset='4-5,12-17'/>
 </cputune>
 ```
 
-If you're wondering why I tuned my CPU configuration this way, I'll refer you to [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Libvirt domain XML format.<span name="return16"><sup>[16](#footnote16)</sup></span> More specifically, consider the differences between `vcpupin`, `emulatorpin`, and `iothreadpin`: 12 out of my 24 threads are assigned as vCPUs to the guest and from the remaining 12 cores assigned to the host, 2 threads are assigned to the emulator and 10 threads are assigned to handle IOThreads.
+If you're wondering why I tuned my CPU configuration this way, I'll refer you to [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Libvirt domain XML format.<span name="return16"><sup>[16](#footnote16)</sup></span> More specifically, consider the `cputune` element and its underlying `vcpupin`, `emulatorpin`, and `iothreadpin` elements. The Arch Wiki recommends to pin the emulator and iothreads to host cores (if available) rather than the VCPUs assigned to the guest. In the example above, 12 out of my 24 threads are assigned as vCPUs to the guest and from the remaining 12 threads on the host, 4 are assigned to the emulator and 8 are assigned to an iothread [see below](#disk).
 
 Go ahead and edit `<cpu>` to formally define the CPU topography of your VM. In my case, I'm allocating 1 socket with 6 physical cores and 2 threads per core:
 
@@ -737,6 +732,82 @@ Go ahead and edit `<cpu>` to formally define the CPU topography of your VM. In m
   <feature policy='require' name='topoext'/>
 </cpu>
 ```
+
+<h4 id="disk">
+    Disk Tuning
+</h4>
+
+As you may or may not remember, my setup passes control of an SSD device controller to the VM. This bypasses any need or concern I'd have with improving virtualized disk performance (I/O reads + writes). If this is not the case for your setup, then you probably allocated a virtual storage disk on your host device. For the rest of this section, let's assume my setup uses a RAW virtual disk image stored at `/var/lib/libvirt/images/pool/win10.img` on which I'd like to improve I/O performance.
+
+KVM and QEMU provide two paravirtualized storage backends: the older virtio-blk (default) and the more modern virtio-scsi. Although it's beyond the scope of this tutorial to discuss their differences, [this post](https://mpolednik.github.io/2017/01/23/virtio-blk-vs-virtio-scsi/) highlights the main architectural difference between the two:
+
+virtio-blk:
+```
+guest: app -> Block Layer -> virtio-blk
+host: QEMU -> Block Layer -> Block Device Driver -> Hardware
+```
+
+virtio-scsi:
+```
+guest: app -> Block Layer -> SCSI Layer -> scsi_mod
+host: QEMU -> Block Layer -> SCSI Layer -> Block Device Driver -> Hardware
+```
+
+In essence, virtio-scsi adds an additional complexity layer that provides it with more features and flexibility than virtio-blk<span name="return17"><sup>[17](#footnote17)</sup></span>. Whichever paravirtualized storage type you decide to go with is entirely up to you; I suggest you run performance tests on both. Make sure that in your CPU configuration, you've assigned an [IOThread](https://libvirt.org/formatdomain.html#elementsIOThreadsAllocation):
+
+```
+<vcpu placement="static">12</vcpu>
+<iothreads>1</iothreads>
+<cputune>
+    ...
+    <emulatorpin cpuset="0-3"/>
+    <iothreadpin iothread='1' cpuset='4-5,12-17'/>
+</cputune>
+```
+
+Here you can see that I've included an `iothreads` element with a value of 1. I've also included the `iothreadpin` element to define the number of CPU pins applied to the single iothread. I highly recommend reviewing [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Arch Wiki to decide on your CPU pinning strategy. Ultimately, it's up to you on how you want to divide the CPU pins among the emulator and iothreads.
+
+
+The final step is to either **(1)** create the virtio-scsi controller and attach our disk or **(2)** make sure our disk is defined correctly for virtio-blk (default). Note: you can **only** have one iothread per disk controller; any additional disks will require their own controllers.
+
+**(1)** virtio-scsi:
+```
+<domain type="kvm">
+    ...
+    <devices>
+        ...
+        <disk type='file' device='disk'>
+            <driver name='qemu' type='raw' cache='none' io='threads' discard='unmap' queues='8'/>
+            <source dev='/var/lib/libvirt/images/pool/win10.img'/>
+            <target dev='sdc' bus='scsi'/>
+        </disk>
+        ...
+        <controller type='scsi' index='0' model='virtio-scsi'>
+            <driver iothread='1' queues='8'/>
+        </controller>       
+        ...
+      </devices>
+</domain>
+```
+
+**(2)** virtio-blk:
+```
+<domain type="kvm">
+    ...
+    <devices>
+        ...
+        <disk type='file' device='disk'>
+            <driver name='qemu' type='raw' cache='none' io='native' discard='unmap' iothread='1' queues='8'/>
+            <source dev='/var/lib/libvirt/images/pool/win10.img'/>
+            <target dev='vdc' bus='virtio'/>
+        </disk>
+        ...
+    </devices>
+    ...
+</domain>
+```
+
+The final thing to remember is that during windows installation you need to include the virtio-iso as the second CDROM (which we've already done [here](#virtual-iso)) so you can load the drivers.
 
 <h4>
     Hyper-V Enlightenments
@@ -766,7 +837,7 @@ Hyper-V enlightenments help the guest VM handle virtualization tasks. [Libvirt](
     Part 5: Benchmarks
 </h3>
 
-Congrats! You've finished setting up your Windows gaming VM! But now comes the most important part... Let's compare the bare-metal performance of Windows against our KVM. If everything goes according to plan, we can expect somewhat close to native performance on the VM. In order to test this theory, I used the following benchmark software: [UserBenchmark](https://www.userbenchmark.com/). Check out the results<span name="return17"><sup>[17](#footnote17)</sup></span> for yourself:
+Congrats! You've finished setting up your Windows gaming VM! But now comes the most important part... Let's compare the bare-metal performance of Windows against our KVM. If everything goes according to plan, we can expect somewhat close to native performance on the VM. In order to test this theory, I used the following benchmark software: [UserBenchmark](https://www.userbenchmark.com/). Check out the results<span name="return18"><sup>[18](#footnote18)</sup></span> for yourself:
 
 * [Windows Native](https://www.userbenchmark.com/UserRun/25008533)
 * [Windows KVM](https://www.userbenchmark.com/UserRun/25008992)
@@ -791,6 +862,7 @@ Hopefully your results are as good as mine, if not better!
         - [libvirtd](https://libvirt.org/manpages/libvirtd.html)
         - [virsh](https://libvirt.org/manpages/virsh.html)
         - [virtIO](https://wiki.libvirt.org/page/Virtio)
+        - [virtio-blk vs. virtio-scsi](https://mpolednik.github.io/2017/01/23/virtio-blk-vs-virtio-scsi/)
     - Linux Kernel
         - [KVM](https://www.kernel.org/doc/html/latest/virt/kvm/index.html)
         - [VFIO](https://www.kernel.org/doc/html/latest/driver-api/vfio.html?highlight=vfio%20pci)
@@ -915,7 +987,11 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return16"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote17">
-        For the sake of fairness, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes. Unfortunately, I couldn't passthrough all 32GB of RAM to the KVM since the host naturally reserves some of its own. In order to mitigate this as much as possible, I passed the remaining 29GB of RAM to the KVM. Due to its nature, a surplus of RAM doesn't really improve performance so much as it prevents bottlenecking.
+        Although the overall performance between virtio-blk and virtio-scsi is similar, passing a single virtio-scsi controller can handle a multitude of PCI devices, whereas virtio-blk exposes one PCI device per controller (usually limited frpm 21-24). <a href="https://www.reddit.com/r/redhat/comments/6cuydw/in_rhv_what_is_the_difference_between_virtio_and/">This comment</a> on Reddit from a RedHat employee provides some good context and resources.
         <a href="#return17"><sup>&#x21ba;</sup></a>
+    </li>
+    <li name="footnote18">
+        For the sake of fairness, I chose to passthrough all 12-cores/24 threads to the KVM. That way, the bare-metal installation won't have an unfair advantage over the KVM when it comes to multi-core processes. Unfortunately, I couldn't passthrough all 32GB of RAM to the KVM since the host naturally reserves some of its own. In order to mitigate this as much as possible, I passed the remaining 29GB of RAM to the KVM. Due to its nature, a surplus of RAM doesn't really improve performance so much as it prevents bottlenecking.
+        <a href="#return18"><sup>&#x21ba;</sup></a>
     </li>
 </ol>
