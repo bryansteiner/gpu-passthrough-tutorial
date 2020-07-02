@@ -461,7 +461,7 @@ I've chosen to remove several of the menu options that won't be useful to my set
     <img src="./img/virtman_8.png" width="450">
 </div><br>
 
-Let's add the <div id="virtio-iso">virtIO drivers</div>. Click 'Add Hardware' and under 'Storage', create a custom storage device of type `CDROM`. Make sure to locate the ISO image for the virtIO drivers from earlier:
+Let's add the <div name="virtio-iso">virtIO drivers</div>. Click 'Add Hardware' and under 'Storage', create a custom storage device of type `CDROM`. Make sure to locate the ISO image for the virtIO drivers from earlier:
 
 <div align="center">
     <img src="./img/virtman_9.png" width="450">
@@ -765,10 +765,10 @@ In essence, virtio-scsi adds an additional complexity layer that provides it wit
 </cputune>
 ```
 
-Here you can see that I've included an `iothreads` element with a value of 1. I've also included the `iothreadpin` element to define the number of CPU pins applied to the single iothread. I highly recommend reviewing [this section](https://libvirt.org/formatdomain.html#elementsCPUTuning) of the Arch Wiki to decide on your CPU pinning strategy. Ultimately, it's up to you on how you want to divide the CPU pins among the emulator and iothreads.
+Here you can see that I've included an `iothreads` element with a value of 1. I've also included the `iothreadpin` element to define the number of CPU pins applied to the single iothread. I highly recommend reviewing [this section](https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Virtio_disk) of the Arch Wiki to decide on your CPU pinning strategy. Ultimately, it's up to you on how you want to divide the CPU pins among the emulator and iothreads.
 
 
-The final step is to either **(1)** create the virtio-scsi controller and attach our disk or **(2)** make sure our disk is defined correctly for virtio-blk (default). Note that you can *only* have one iothread per disk controller.
+The final step is to either: **(1)** create the virtio-scsi controller and attach our disk or **(2)** make sure our disk is defined correctly for virtio-blk (default). Note that you can *only* have one iothread per disk controller.
 
 `virtio-scsi`:
 ```
