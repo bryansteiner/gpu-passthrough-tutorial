@@ -685,7 +685,36 @@ This performance tweak applies *only* to those of you whose processors are [mult
 
 VMs are unable to distinguish between these physical and logical cores. From the guest's perspective, virt-manager sees that there are 24 virtual CPUs (vCPUs) available. From the host's perspective however, two virtual cores map to a single physical core on the CPU die.
 
-It's **very important** that when we passthrough a core, we include its sibling. To get a sense of which cores are siblings, use the command `$ cat /proc/cpuinfo | grep "core id"`. A matching core id means that the associated threads run on the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
+It's **very important** that when we passthrough a core, we include its sibling. To get a sense of your cpu topology, use the command `$ lscpu -e"`. A matching core id (i.e. "CORE" column) means that the associated threads (i.e. "CPU" column) run on the same physical core.<span name="return15"><sup>[15](#footnote15)</sup></span>
+
+```
+CPU NODE SOCKET CORE L1d:L1i:L2:L3 ONLINE    MAXMHZ    MINMHZ
+  0    0      0    0 0:0:0:0          yes 3800.0000 2200.0000
+  1    0      0    1 1:1:1:0          yes 3800.0000 2200.0000
+  2    0      0    2 2:2:2:0          yes 3800.0000 2200.0000
+  3    0      0    3 3:3:3:1          yes 3800.0000 2200.0000
+  4    0      0    4 4:4:4:1          yes 3800.0000 2200.0000
+  5    0      0    5 5:5:5:1          yes 3800.0000 2200.0000
+  6    0      0    6 6:6:6:2          yes 3800.0000 2200.0000
+  7    0      0    7 7:7:7:2          yes 3800.0000 2200.0000
+  8    0      0    8 8:8:8:2          yes 3800.0000 2200.0000
+  9    0      0    9 9:9:9:3          yes 3800.0000 2200.0000
+ 10    0      0   10 10:10:10:3       yes 3800.0000 2200.0000
+ 11    0      0   11 11:11:11:3       yes 3800.0000 2200.0000
+ 12    0      0    0 0:0:0:0          yes 3800.0000 2200.0000
+ 13    0      0    1 1:1:1:0          yes 3800.0000 2200.0000
+ 14    0      0    2 2:2:2:0          yes 3800.0000 2200.0000
+ 15    0      0    3 3:3:3:1          yes 3800.0000 2200.0000
+ 16    0      0    4 4:4:4:1          yes 3800.0000 2200.0000
+ 17    0      0    5 5:5:5:1          yes 3800.0000 2200.0000
+ 18    0      0    6 6:6:6:2          yes 3800.0000 2200.0000
+ 19    0      0    7 7:7:7:2          yes 3800.0000 2200.0000
+ 20    0      0    8 8:8:8:2          yes 3800.0000 2200.0000
+ 21    0      0    9 9:9:9:3          yes 3800.0000 2200.0000
+ 22    0      0   10 10:10:10:3       yes 3800.0000 2200.0000
+ 23    0      0   11 11:11:11:3       yes 3800.0000 2200.0000
+
+```
 
 If you're more of a visual learner, perhaps a diagram of your CPU architecture will help you visualize what's going on. Download the `hwloc` package with `$ sudo apt install hwloc`. Then simply type the command `$ lstopo`:
 
@@ -693,7 +722,7 @@ If you're more of a visual learner, perhaps a diagram of your CPU architecture w
     <img src="./img/lstopo.png" width="450">
 </div><br>
 
-It's time to edit the XML configuration of our VM. I've added the following lines of code (customize for your processor):
+It's time to edit the XML configuration of our VM. I've added the following lines of code to pass physical cores #6-11 to the guest and leave physical cores #0-5 with the host (customize for your processor):
 
 ```
 <vcpu placement="static">12</vcpu>
@@ -975,7 +1004,7 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return14"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote15">
-        Credit to Rokas Kupstys in <a href="https://rokups.github.io/#!pages/gaming-vm-performance.md">this post.
+        See a similar discussion here from Rokas Kupstys in <a href="https://rokups.github.io/#!pages/gaming-vm-performance.md">this post.
         <a href="#return15"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote16">
