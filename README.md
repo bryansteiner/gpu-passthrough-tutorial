@@ -56,7 +56,7 @@ If you haven't built a PC yet but want it to be KVM/VFIO-focused, check out [thi
 - Motherboard:
     - Gigabyte X570 Aorus Pro Wifi
 - GPUs:
-    - NVIDIA RTX 2080 Ti
+    - NVIDIA RTX 3080
     - AMD RX 5700
 - Memory:
     - Corsair Vengeance LPX DDR4 3200 MHz 32GB (2x16)
@@ -119,16 +119,15 @@ For Intel systems, here's some sample output:
 ...
 IOMMU Group 1 00:01.0 PCI bridge [0604]: Intel Corporation Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x16) [8086:1901] (rev 07)
 IOMMU Group 1 00:01.1 PCI bridge [0604]: Intel Corporation Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x8) [8086:1905] (rev 07)
-IOMMU Group 1 01:00.0 VGA compatible controller [0300]: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti Rev. A] [10de:1e07] (rev a1)
-IOMMU Group 1 01:00.1 Audio device [0403]: NVIDIA Corporation TU102 High Definition Audio Controller [10de:10f7] (rev a1)
-IOMMU Group 1 01:00.2 USB controller [0c03]: NVIDIA Corporation TU102 USB 3.1 Controller [10de:1ad6] (rev a1)
-IOMMU Group 1 01:00.3 Serial bus controller [0c80]: NVIDIA Corporation TU102 UCSI Controller [10de:1ad7] (rev a1)
-IOMMU Group 1 02:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere [Radeon RX 470/480/570/570X/580/580X/590] [1002:67df] (rev e1)
-IOMMU Group 1 02:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere HDMI Audio [Radeon RX 470/480 / 570/580/590] [1002:aaf0]
+...
+IOMMU Group 30 0d:00.0 VGA compatible controller [0300]: NVIDIA Corporation Device [10de:2206] (rev a1)
+IOMMU Group 30 0d:00.1 Audio device [0403]: NVIDIA Corporation Device [10de:1aef] (rev a1)
+IOMMU Group 30 0c:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT] [1002:731f] (rev c4)
+IOMMU Group 31 0c:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 HDMI Audio [1002:ab38]
 ...
 ```
 
-Here we see that both the NVIDIA and AMD GPUs reside in IOMMU group 1. This presents a problem. If you want to use the AMD GPU for the host machine while passing through the NVIDIA GPU to the guest VM, you need to figure out a way to separate their IOMMU groups.
+Here we see that both the NVIDIA and AMD GPUs reside in IOMMU group 30. This presents a problem. If you want to use the AMD GPU for the host machine while passing through the NVIDIA GPU to the guest VM, you need to figure out a way to separate their IOMMU groups.
 
 1. One possible solution is to switch the PCI slot to which the AMD graphics card is attached. This may or may not produce the desired solution.
 2. An alternative solution is something called the [ACS Override Patch](https://queuecumber.gitlab.io/linux-acs-override/). For an in-depth discussion, it's definitely worth checking out this post from [Alex Williamson](https://vfio.blogspot.com/2014/08/iommu-groups-inside-and-out.html). Make sure to consider the risks.<span name="return5"><sup>[5](#footnote5)</sup></span>
@@ -137,13 +136,10 @@ For my system, I was lucky<span name="return6"><sup>[6](#footnote6)</sup></span>
 
 ```
 ...
-IOMMU Group 28 0a:00.0 VGA compatible controller [0300]: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti Rev. A] [10de:1e07] (rev a1)
-IOMMU Group 28 0a:00.1 Audio device [0403]: NVIDIA Corporation TU102 High Definition Audio Controller [10de:10f7] (rev a1)
-IOMMU Group 28 0a:00.2 USB controller [0c03]: NVIDIA Corporation TU102 USB 3.1 Controller [10de:1ad6] (rev a1)
-IOMMU Group 28 0a:00.3 Serial bus controller [0c80]: NVIDIA Corporation TU102 UCSI Controller [10de:1ad7] (rev a1)
-...
-IOMMU Group 31 0d:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 [1002:731f] (rev c4)
-IOMMU Group 32 0d:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 HDMI Audio [1002:ab38]
+IOMMU Group 30 0c:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT] [1002:731f] (rev c4)
+IOMMU Group 31 0c:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 HDMI Audio [1002:ab38]
+IOMMU Group 32 0d:00.0 VGA compatible controller [0300]: NVIDIA Corporation Device [10de:2206] (rev a1)
+IOMMU Group 32 0d:00.1 Audio device [0403]: NVIDIA Corporation Device [10de:1aef] (rev a1)
 ...
 ```
 
@@ -263,12 +259,10 @@ Reboot and verify that the IOMMU groups for your graphics cards are different:
 
 ```
 ...
-IOMMU Group 15 01:00.0 VGA compatible controller [0300]: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti Rev. A] [10de:1e07] (rev a1)
-IOMMU Group 15 01:00.1 Audio device [0403]: NVIDIA Corporation TU102 High Definition Audio Controller [10de:10f7] (rev a1)
-IOMMU Group 15 01:00.2 USB controller [0c03]: NVIDIA Corporation TU102 USB 3.1 Controller [10de:1ad6] (rev a1)
-IOMMU Group 15 01:00.3 Serial bus controller [0c80]: NVIDIA Corporation TU102 UCSI Controller [10de:1ad7] (rev a1)
-IOMMU Group 16 02:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere [Radeon RX 470/480/570/570X/580/580X/590] [1002:67df] (rev e1)
-IOMMU Group 16 02:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere HDMI Audio [Radeon RX 470/480 / 570/580/590] [1002:aaf0]
+IOMMU Group 30 0c:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 [Radeon RX 5600 OEM/5600 XT / 5700/5700 XT] [1002:731f] (rev c4)
+IOMMU Group 31 0c:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 10 HDMI Audio [1002:ab38]
+IOMMU Group 32 0d:00.0 VGA compatible controller [0300]: NVIDIA Corporation Device [10de:2206] (rev a1)
+IOMMU Group 32 0d:00.1 Audio device [0403]: NVIDIA Corporation Device [10de:1aef] (rev a1)
 ...
 ```
 
