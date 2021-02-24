@@ -988,7 +988,7 @@ Hopefully your results are as good as mine, if not better!
         <a href="#return10"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote11">
-        See <a href="https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough/#About_keyboard_and_mouse">this link</a> for software/hardware solutions that share your keyboard and mouse across your host and guest.
+        See <a href="https://heiko-sieger.info/running-windows-10-on-linux-using-kvm-with-vga-passthrough/#About_keyboard_and_mouse">this link</a> and <a href="https://github.com/debauchee/barrier"> this</a> for software/hardware solutions that share your keyboard and mouse across your host and guest.
         <a href="#return11"><sup>&#x21ba;</sup></a>
     </li>
     <li name="footnote12">
