@@ -554,7 +554,7 @@ None of the following performance optimizations are necessary to get a working G
     Hugepages
 </h4>
 
-Memory (RAM) is divided up into basic segments called *pages*. By default, the x86 architecture has a page size of 4KB. CPUs utilize pages within the built in memory management unit ([MMU](https://en.wikipedia.org/wiki/Memory_management_unit)). Although the standard page size is suitable for many tasks, *hugepages* are a mechanism that allow the Linux kernel to take advantage of large amounts of memory with reduced overhead. Hugepages can vary in size anywhere from 2MB to 1GB. Hugepages are enabled by default but if they aren't, make sure to download the package: `$ sudo apt install hugepages`.<span name="return12"><sup>[12](#footnote12)</sup></span>
+Memory (RAM) is divided up into basic segments called *pages*. By default, the x86 architecture has a page size of 4KB. CPUs utilize pages within the built in memory management unit ([MMU](https://en.wikipedia.org/wiki/Memory_management_unit)). Although the standard page size is suitable for many tasks, *hugepages* are a mechanism that allow the Linux kernel to take advantage of large amounts of memory with reduced overhead. Hugepages can vary in size anywhere from 2MB to 1GB. Hugepages are enabled by default but if they aren't, make sure to download the package: `$ sudo apt install libhugetlbfs-bin`.<span name="return12"><sup>[12](#footnote12)</sup></span>
 
 Go back to your VM's XML settings by either using the virt-man GUI or the command: `$ sudo virsh edit {vm-name}`. Insert the `memoryBacking` lines so that your configuration looks like this:
 
