@@ -12,6 +12,7 @@
     * [Part 3: Creating the VM](#part3)
     * [Part 4: Improving VM Performance](#part4)
     * [Part 5: Benchmarks](#part5)
+    * [Part 6: Software Licensing Considerations](#part6)
 * [Credits & Resources](#credits)
 * [Footnotes](#footnotes)
 
@@ -868,6 +869,88 @@ Congrats! You've finished setting up your Windows gaming VM! But now comes the m
 * [Windows KVM](https://www.userbenchmark.com/UserRun/25008992)
 
 Hopefully your results are as good as mine, if not better!
+
+<h3 name="part6">
+    Part 6: Software Licensing Considerations
+</h3>
+
+When running in the qemu environment, as described above, unique system identifiers are set by the virtual environment. These identifiers are often used to tie a software license to a physical machine. Because the virtual machine is merely
+duplicating the physical machine, one can copy the physical system system identifiers into the virtual machine. If one is also using a dedicated physical device for the virtual machine storage, this allows booting the Windows installation
+as a virtual machine or natively with dual-boot.
+
+To do this, one needs to modify the XML of the virtual machine to replicate their system. An example with some valid values is below:
+
+```
+<sysinfo type="smbios">
+    <bios>
+      <entry name="vendor">American Megatrends, Inc.</entry>
+      <entry name="version">0812</entry>
+      <entry name="date">02/24/2023</entry>
+      <entry name="release">8.12</entry>
+    </bios>
+    <system>
+      <entry name="manufacturer">ASUS</entry>
+      <entry name="product">System Product Name</entry>
+      <entry name="version">System Version</entry>
+      <entry name="serial">System Serial Number</entry>
+      <entry name="uuid">UNIQUE_UUID</entry>
+      <entry name="sku">SKU</entry>
+      <entry name="family">To be filled by O.E.M.</entry>
+    </system>
+    <baseBoard>
+      <entry name="manufacturer">ASUSTeK COMPUTER INC.</entry>
+      <entry name="product">PRIME Z790-P WIFI</entry>
+      <entry name="version">Rev 1.xx</entry>
+      <entry name="serial">UNIQUE_SERIAL_NUMBER</entry>
+      <entry name="asset">Default string</entry>
+    </baseBoard>
+  </sysinfo>
+```
+
+Acquiring the system values involves using `dmidecode`. Root privileges are required. An example invocation is `dmidecode -s bios-vendor`; the full translation to the XML above is:
+
+```
+<sysinfo type="smbios">
+    <bios>
+      <entry name="vendor">dmidecode -s bios-vendor</entry>
+      <entry name="version">dmidecode -s bios-vendor</entry>
+      <entry name="date">dmidecode -s bios-release-date</entry>
+      <entry name="release">dmidecode -s bios-version</entry>
+    </bios>
+    <system>
+      <entry name="manufacturer">dmidecode -s system-manufacturer</entry>
+      <entry name="product">dmidecode -s system-product-name</entry>
+      <entry name="version">dmidecode -s system-version</entry>
+      <entry name="serial">dmidecode -s system-serial-number</entry>
+      <entry name="uuid">dmidecode -s system-uuid</entry>
+      <entry name="sku">dmidecode -s system-sku-number</entry>
+      <entry name="family">dmidecode -s system-family</entry>
+    </system>
+    <baseBoard>
+      <entry name="manufacturer">dmidecode -s baseboard-manufacturer</entry>
+      <entry name="product">dmidecode -s baseboard-product-name</entry>
+      <entry name="version">dmidecode -s baseboard-version</entry>
+      <entry name="serial">dmidecode -s baseboard-serial-number</entry>
+      <entry name="asset">dmidecode -s baseboard-asset-tag</entry>
+    </baseBoard>
+  </sysinfo>
+```
+
+Lastly, by default Linux systems store the physical hardware clock as UTC. When dual-booting; this conflicts with the relative clock used by default in Windows or the virtual environment setup. This clock delta can cause the time to change
+on the system in unhealthy ways during reboots; specifically voiding certificates and causing havoc with software licensing tools. To rectify this, modify the clock section of the virtual machine XML, to utilize UTC instead of localtime.
+
+```
+<clock offset="utc">
+    <timer name="rtc" tickpolicy="catchup"/>
+    <timer name="pit" tickpolicy="delay"/>
+    <timer name="hpet" present="no"/>
+    <timer name="hypervclock" present="yes"/>
+  </clock>
+```
+
+In addition, within the virtual machine edit the registry to add a new dword(`"RealTimeIsUniversal"=dword:00000001`) to `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation`.
+
+Power-off and power-on the VM to verify the virtual machine is reporting the correct time. At this point one could natively boot into the operating system and use many hardware-locked license protected software offerings.
 
 <h2 name="credits">
     Credits & Resources
