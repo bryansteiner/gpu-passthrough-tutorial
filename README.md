@@ -628,6 +628,17 @@ source "/etc/libvirt/hooks/kvm.conf"
 echo 0 > /proc/sys/vm/nr_hugepages
 ```
 
+Be sure to update your kvm.conf to include `MEMORY=<size in mb>` as the `alloc_hugepages.sh` script requires a value here. To calculate your hugepages, you can use the following commands to see your total memory and your hugepage size:
+
+```
+$ grep MemTotal /proc/meminfo
+MemTotal: 132151496 kB
+$ grep Hugepagesize /proc/meminfo
+Hugepagesize:       2048 kB
+```
+
+You will want to set `MEMORY=` to a multiple of your hugepage size in MB. From the example above: size = 2048 kB and we want roughly 16GB of memory, so we can choose `MEMORY=16384` (2048 * 8000 / 1000 = 16384).
+
 <h4>
     CPU Governor
 </h4>
