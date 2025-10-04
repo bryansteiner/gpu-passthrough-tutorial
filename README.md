@@ -105,7 +105,7 @@ Next, we need to determine the IOMMU groups of the graphics card we want to pass
 We want to make sure that our system has an appropriate IOMMU grouping scheme. Essentially, we need to remember that devices residing within the same IOMMU group need to be passed through to the VM (they can't be separated). To determine your IOMMU grouping, use the following script:
 
 `iommu.sh`:
-```
+```sh
 #!/bin/bash
 for d in /sys/kernel/iommu_groups/*/devices/*; do
   n=${d#*/iommu_groups/*}; n=${n%%/*}
@@ -342,7 +342,7 @@ VIRSH_NVME_SSD=pci_0000_04_00_0
 Make sure to substitute the correct bus addresses for the devices you'd like to passthrough to your VM (in my case a GPU and SSD). Just in case it's still unclear, you get the virsh PCI device IDs from the `iommu.sh` script's output. Translate the address for each device as follows: `IOMMU Group 1 01:00.0 ...` --> `VIRSH_...=pci_0000_01_00_0`. Now create two bash scripts:
 
 `bind_vfio.sh`:
-```
+```sh
 #!/bin/bash
 
 ## Load the config file
@@ -363,7 +363,7 @@ virsh nodedev-detach $VIRSH_NVME_SSD
 ```
 
 `unbind_vfio.sh`:
-```
+```sh
 #!/bin/bash
 
 ## Load the config file
@@ -506,7 +506,7 @@ Unfortunately, not everything we need can be accomplished within the virt-manage
 
 If you're like me and you're passing through an NVIDIA GPU to your VM, then you might run into the following common roadblock. [Error 43](https://passthroughpo.st/apply-error-43-workaround/) occurs because NVIDIA intentionally disables virtualization features on its GeForce line of cards. The way to deal with this is to have the hypervisor hide its existence. Inside the `hyperv` section, add a tag for `vendor_id` such that `state="on"` and `value` is any string up to 12 characters long:
 
-```
+```xml
 <features>
     ...
     <hyperv>
@@ -521,7 +521,7 @@ If you're like me and you're passing through an NVIDIA GPU to your VM, then you 
 
 In addition, instruct the kvm to hide its state by adding the following code directly below the `hyperv` section:
 
-```
+```xml
 <features>
     ...
     <hyperv>
@@ -536,7 +536,7 @@ In addition, instruct the kvm to hide its state by adding the following code dir
 
 Finally, if you're using QEMU 4.0 with the q35 chipset you also need to add the following code at the end of `<features>`:
 
-```
+```xml
 <features>
     ...
     <ioapic driver="kvm"/>
@@ -559,7 +559,7 @@ Memory (RAM) is divided up into basic segments called *pages*. By default, the x
 
 Go back to your VM's XML settings by either using the virt-man GUI or the command: `$ sudo virsh edit {vm-name}`. Insert the `memoryBacking` lines so that your configuration looks like this:
 
-```
+```xml
 <memory unit="KiB">16777216</memory>
 <currentMemory unit="KiB">16777216</currentMemory>
 <memoryBacking>
@@ -587,7 +587,7 @@ $ tree /etc/libvirt/hooks/
 ```
 
 `alloc_hugepages.sh`:
-```
+```sh
 #!/bin/bash
 
 ## Load the config file
@@ -619,7 +619,7 @@ fi
 ```
 
 `dealloc_hugepages.sh`
-```
+```sh
 #!/bin/bash
 
 ## Load the config file
@@ -663,7 +663,7 @@ $ tree /etc/libvirt/hooks/
 ```
 
 `cpu_mode_performance.sh`:
-```
+```sh
 #!/bin/bash
 
 ## Load the config file
@@ -677,7 +677,7 @@ cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 ```
 
 `cpu_mode_ondemand.sh`:
-```
+```sh
 #!/bin/bash
 
 ## Load the config file
@@ -736,7 +736,7 @@ If you're more of a visual learner, perhaps a diagram of your CPU architecture w
 
 It's time to edit the XML configuration of our VM. I've added the following lines of code to pass physical cores #6-11 to the guest and leave physical cores #0-5 with the host (customize for your processor):
 
-```
+```xml
 <vcpu placement="static">12</vcpu>
 <cputune>
     <vcpupin vcpu="0" cpuset="6"/>
@@ -760,7 +760,7 @@ If you're wondering why I tuned my CPU configuration this way, I'll refer you to
 
 Go ahead and edit `<cpu>` to formally define the CPU topography of your VM. In my case, I'm allocating 1 socket with 6 physical cores and 2 threads per core:
 
-```
+```xml
 <cpu mode="host-passthrough" check="none">
   <topology sockets="1" cores="6" threads="2"/>
   <cache mode='passthrough'/>
@@ -790,7 +790,7 @@ host: QEMU -> Block Layer -> SCSI Layer -> Block Device Driver -> Hardware
 
 In essence, virtio-scsi adds an additional complexity layer that provides it with more features and flexibility than virtio-blk.<span name="return17"><sup>[17](#footnote17)</sup></span> Whichever paravirtualized storage type you decide to go with is entirely up to you; I suggest you run performance tests on both. Make sure that in your CPU configuration, you've assigned an [IOThread](https://libvirt.org/formatdomain.html#elementsIOThreadsAllocation):
 
-```
+```xml
 <vcpu placement="static">12</vcpu>
 <iothreads>1</iothreads>
 <cputune>
@@ -806,7 +806,7 @@ Here you can see that I've included an `iothreads` element with a value of 1. I'
 The final step is to either: **(1)** create the virtio-scsi controller and attach our disk or **(2)** make sure our disk is defined correctly for virtio-blk (default). Note that you can *only* have one iothread per disk controller.
 
 `virtio-scsi`:
-```
+```xml
 <domain type="kvm">
     ...
     <devices>
@@ -828,7 +828,7 @@ The final step is to either: **(1)** create the virtio-scsi controller and attac
 ```
 
 `virtio-blk`:
-```
+```xml
 <domain type="kvm">
     ...
     <devices>
@@ -852,7 +852,7 @@ The final thing to remember is that during the windows installation on your virt
 
 Hyper-V enlightenments help the guest VM handle virtualization tasks. [Libvirt](https://libvirt.org/formatdomain.html#elementsFeatures) has a detailed breakdown of these features. I've chosen to go with the set of features recommended in [this tutorial](https://mathiashueber.com/performance-tweaks-gaming-on-virtual-machines/) due to hardware similarities:
 
-```
+```xml
 <features>
     ...
     <hyperv>
@@ -891,7 +891,7 @@ as a virtual machine or natively with dual-boot.
 
 To do this, one needs to modify the XML of the virtual machine to replicate their system. An example with some valid values is below:
 
-```
+```xml
 <sysinfo type="smbios">
     <bios>
       <entry name="vendor">American Megatrends, Inc.</entry>
@@ -920,7 +920,7 @@ To do this, one needs to modify the XML of the virtual machine to replicate thei
 
 Acquiring the system values involves using `dmidecode`. Root privileges are required. An example invocation is `dmidecode -s bios-vendor`; the full translation to the XML above is:
 
-```
+```xml
 <sysinfo type="smbios">
     <bios>
       <entry name="vendor">dmidecode -s bios-vendor</entry>
@@ -950,7 +950,7 @@ Acquiring the system values involves using `dmidecode`. Root privileges are requ
 Lastly, by default Linux systems store the physical hardware clock as UTC. When dual-booting; this conflicts with the relative clock used by default in Windows or the virtual environment setup. This clock delta can cause the time to change
 on the system in unhealthy ways during reboots; specifically voiding certificates and causing havoc with software licensing tools. To rectify this, modify the clock section of the virtual machine XML, to utilize UTC instead of localtime.
 
-```
+```xml
 <clock offset="utc">
     <timer name="rtc" tickpolicy="catchup"/>
     <timer name="pit" tickpolicy="delay"/>
